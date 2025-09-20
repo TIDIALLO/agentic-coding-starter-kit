@@ -96,7 +96,7 @@ npm run db:migrate
 ```bash
 npm run dev
 ```
-
+ 
 Your application will be available at [http://localhost:3000](http://localhost:3000)
 
 ## ⚙️ Service Configuration
@@ -222,7 +222,7 @@ Watch my comprehensive tutorial on how to use this agentic coding boilerplate to
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Need Help?
-
+3rre
 If you encounter any issues:
 
 1. Check the [Issues](https://github.com/leonvanzyl/agentic-coding-starter-kit/issues) section
@@ -232,3 +232,4 @@ If you encounter any issues:
 ---
 
 **Happy coding! 🚀**
+
