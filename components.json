@@ -3,6 +3,9 @@
   "style": "new-york",
   "rsc": true,
   "tsx": true,
+  "dependencies": {
+    "manager": "npm"
+  },
   "tailwind": {
     "config": "",
     "css": "src/app/globals.css",

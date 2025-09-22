@@ -65,7 +65,7 @@ Fill in your environment variables in the `.env` file:
 
 ```env
 # Database
-POSTGRES_URL="postgresql://username:password@localhost:5432/your_database_name"
+POSTGRES_URL="postgresql://username:password@localhost:5433/your_database_name"
 
 # Authentication - Better Auth
 BETTER_AUTH_SECRET="your-random-32-character-secret-key-here"
@@ -77,6 +77,9 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 # AI Integration (Optional - for chat functionality)
 OPENAI_API_KEY="sk-your-openai-api-key-here"
 OPENAI_MODEL="gpt-5-mini"
+
+# Google Gemini (needed for Room Redesign)
+GEMINI_API_KEY="your-gemini-api-key"
 
 # App URL (for production deployments)
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
