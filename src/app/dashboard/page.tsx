@@ -47,7 +47,8 @@ export default function DashboardPage()
     async function load()
     {
       try {
-        const res = await fetch("/api/dashboard/metrics");
+        const res = await fetch("/api/dashboard/metrics", { next: { revalidate: 60 } });
+        if (!res.ok) throw new Error("metrics_unavailable");
         const json = await res.json();
         if (!cancelled) setMetrics(json);
       } finally {
@@ -108,7 +109,7 @@ export default function DashboardPage()
             </CardHeader>
             <CardContent>
               {loading || !metrics ? (
-                <div className="h-[220px] flex items-center justify-center text-slate-500">Loading…</div>
+                <div className="h-[220px] flex items-center justify-center text-slate-500">{loading ? "Loading…" : "Service indisponible"}</div>
               ) : (
                 <LineChart
                   className="w-full"
@@ -128,7 +129,7 @@ export default function DashboardPage()
             </CardHeader>
             <CardContent>
               {loading || !metrics ? (
-                <div className="h-[220px] flex items-center justify-center text-slate-500">Loading…</div>
+                <div className="h-[220px] flex items-center justify-center text-slate-500">{loading ? "Loading…" : "Service indisponible"}</div>
               ) : (
                 <DonutChart
                   data={(metrics.revenueByType.length ? metrics.revenueByType : [{ label: "uncategorized", value: 1 }]).map((d, idx) => ({

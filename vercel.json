@@ -3,6 +3,13 @@
 	"installCommand": "npm ci || npm install",
 	"outputDirectory": ".next",
 	"framework": "nextjs",
+	"functions": {
+		"api/**": {
+			"maxDuration": 30,
+			"memory": 1024,
+			"regions": ["iad1"]
+		}
+	},
 	"git": {
 		"deploymentEnabled": {
 			"master": true
