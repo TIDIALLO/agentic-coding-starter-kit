@@ -18,6 +18,7 @@ export default function SocialStudioPage()
     const [images, setImages] = useState<string[]>([]);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [platforms, setPlatforms] = useState<Record<string, boolean>>({ facebook: true, instagram: false, linkedin: false, x: false, tiktok: false });
+    const [publishNow, setPublishNow] = useState<boolean>(true);
     const [scheduledAt, setScheduledAt] = useState<string>("");
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
@@ -36,14 +37,15 @@ export default function SocialStudioPage()
                     text,
                     mediaUrl: mediaUrl || undefined,
                     platforms: (Object.keys(platforms) as Array<keyof typeof platforms>).filter((k) => platforms[k]) as any,
-                    scheduledAt: scheduledAt || undefined,
+                    scheduledAt: publishNow ? undefined : (scheduledAt || undefined),
+                    publishNow,
                 }),
             });
             const json = await res.json();
             if (!res.ok) throw new Error(json?.error || "Failed");
-            setMessage("✅ Scheduled successfully");
+            setMessage(publishNow ? "✅ Publié (simulation)" : "✅ Planifié avec succès");
         } catch (e) {
-            setMessage("❌ Failed to schedule");
+            setMessage("❌ Échec de l'opération");
         } finally {
             setSubmitting(false);
         }
@@ -150,23 +152,41 @@ export default function SocialStudioPage()
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">{t.social.platformsLabel}</label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {(["facebook", "instagram", "linkedin", "x", "tiktok"] as const).map((p) => (
-                                <Button key={p} type="button" variant={platforms[p] ? "default" : "outline"} onClick={() => toggle(p)} className="rounded-xl">
-                                    {p}
-                                </Button>
+                                <button
+                                    key={p}
+                                    type="button"
+                                    onClick={() => toggle(p)}
+                                    className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition ${platforms[p] ? "bg-blue-600 text-white border-blue-600" : "bg-white/10 border-white/20 hover:bg-white/20"}`}
+                                    aria-pressed={platforms[p]}
+                                >
+                                    {p === "facebook" && <Facebook className="h-5 w-5" />}
+                                    {p === "instagram" && <Instagram className="h-5 w-5" />}
+                                    {p === "linkedin" && <Linkedin className="h-5 w-5" />}
+                                    {p === "x" && <Twitter className="h-5 w-5" />}
+                                    {p === "tiktok" && <Music2 className="h-5 w-5" />}
+                                    <span className="capitalize">{p}</span>
+                                </button>
                             ))}
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm font-medium mb-1">{t.social.scheduleAtLabel}</label>
-                            <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div className="flex items-center gap-2">
+                            <input id="publishNow" type="checkbox" checked={publishNow} onChange={(e) => setPublishNow(e.target.checked)} className="h-4 w-4" />
+                            <label htmlFor="publishNow" className="text-sm font-medium">Publier maintenant</label>
                         </div>
+                        {!publishNow && (
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium mb-1">{t.social.scheduleAtLabel}</label>
+                                <Input type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+                            </div>
+                        )}
                     </div>
                     <div className="flex items-center gap-3">
-                        <Button onClick={submit} disabled={submitting || !text.trim()} className="rounded-xl">{t.social.scheduleCta}</Button>
-                        <Button onClick={() => submit()} disabled={submitting || !text.trim()} variant="outline" className="rounded-xl">{t.social.publishNowCta}</Button>
+                        <Button onClick={submit} disabled={submitting || !text.trim()} className="rounded-xl">
+                            {publishNow ? t.social.publishNowCta : t.social.scheduleCta}
+                        </Button>
                         <Button onClick={() => history.back()} variant="ghost" className="rounded-xl">{t.social.cancelCta}</Button>
                         {message && <span className="text-sm">{message}</span>}
                         <div className="ml-auto flex items-center gap-2">

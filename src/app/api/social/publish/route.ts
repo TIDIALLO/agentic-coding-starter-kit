@@ -9,12 +9,13 @@ type PublishBody = {
   mediaUrl?: string;
   platforms: Array<"facebook" | "instagram" | "linkedin" | "x" | "tiktok">;
   scheduledAt?: string; // ISO; if absent, publish immediately
+  publishNow?: boolean;
 };
 
 export async function POST(req: NextRequest) {
   return requireAuth(req, async (_req, userId) => {
     try {
-      const { text, mediaUrl, platforms, scheduledAt } =
+      const { text, mediaUrl, platforms, scheduledAt, publishNow } =
         (await req.json()) as PublishBody;
       if (!text || !Array.isArray(platforms) || platforms.length === 0) {
         return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
@@ -34,23 +35,21 @@ export async function POST(req: NextRequest) {
               postId: post.id,
               platform: p,
               scheduledAt: scheduledAt ? new Date(scheduledAt) : new Date(),
-              status: scheduledAt ? "scheduled" : "scheduled",
+              status: scheduledAt || !publishNow ? "scheduled" : "published",
             })
             .returning();
           return row;
         })
       );
 
-      // Note: Immediate publish can be wired here per platform if desired; for now we schedule only
-      await db
-        .insert(socialLog)
-        .values(
-          schedules.map((s) => ({
-            scheduleId: s.id,
-            level: "info",
-            message: "Scheduled",
-          }))
-        );
+      // Log results (stub immediate publish)
+      await db.insert(socialLog).values(
+        schedules.map((s) => ({
+          scheduleId: s.id,
+          level: "info",
+          message: s.status === "published" ? "Published (stub)" : "Scheduled",
+        }))
+      );
 
       return NextResponse.json(
         { ok: true, postId: post.id, schedules },
