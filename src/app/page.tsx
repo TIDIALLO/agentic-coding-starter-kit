@@ -49,8 +49,8 @@ export default function Home()
           </motion.div>
           <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12" variants={container}>
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
-              <Card className="rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
-                <CardContent className="p-8">
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
                   <div className="space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                       <Building2 className="h-6 w-6 text-white" />
@@ -61,7 +61,7 @@ export default function Home()
                         {t.home.cards.propertiesDesc}
                       </p>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-blue-50 group-hover:border-blue-300 transition-all duration-300">
                         <Link href="/properties">{t.home.cards.propertiesCta}</Link>
                       </Button>
@@ -72,8 +72,8 @@ export default function Home()
             </motion.div>
 
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
-              <Card className="rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
-                <CardContent className="p-8">
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
                   <div className="space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                       <Calendar className="h-6 w-6 text-white" />
@@ -84,7 +84,7 @@ export default function Home()
                         {t.home.cards.visitsDesc}
                       </p>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-emerald-50 group-hover:border-emerald-300 transition-all duration-300">
                         <Link href="/visits">{t.home.cards.visitsCta}</Link>
                       </Button>
@@ -95,8 +95,8 @@ export default function Home()
             </motion.div>
 
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
-              <Card className="rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
-                <CardContent className="p-8">
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
                   <div className="space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                       <Users className="h-6 w-6 text-white" />
@@ -107,7 +107,7 @@ export default function Home()
                         {t.home.cards.prospectsDesc}
                       </p>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-purple-50 group-hover:border-purple-300 transition-all duration-300">
                         <Link href="/prospects">{t.home.cards.prospectsCta}</Link>
                       </Button>
@@ -118,8 +118,8 @@ export default function Home()
             </motion.div>
 
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
-              <Card className="rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
-                <CardContent className="p-8">
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
                   <div className="space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                       <ImageIcon className="h-6 w-6 text-white" />
@@ -130,7 +130,7 @@ export default function Home()
                         {t.home.cards.aiDesc}
                       </p>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-pink-50 group-hover:border-pink-300 transition-all duration-300">
                         <Link href="/image-enhancement">{t.home.cards.aiCta}</Link>
                       </Button>
@@ -141,8 +141,8 @@ export default function Home()
             </motion.div>
 
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
-              <Card className="rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
-                <CardContent className="p-8">
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
                   <div className="space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                       <FileText className="h-6 w-6 text-white" />
@@ -153,7 +153,7 @@ export default function Home()
                         {t.home.cards.contractsDesc}
                       </p>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-orange-50 group-hover:border-orange-300 transition-all duration-300">
                         <Link href="/contracts">{t.home.cards.contractsCta}</Link>
                       </Button>
@@ -164,8 +164,8 @@ export default function Home()
             </motion.div>
 
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
-              <Card className="rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
-                <CardContent className="p-8">
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
                   <div className="space-y-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                       <BarChart3 className="h-6 w-6 text-white" />
@@ -176,7 +176,7 @@ export default function Home()
                         {t.home.cards.analyticsDesc}
                       </p>
                     </div>
-                    <div className="pt-2">
+                    <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-cyan-50 group-hover:border-cyan-300 transition-all duration-300">
                         <Link href="/dashboard">{t.home.cards.analyticsCta}</Link>
                       </Button>

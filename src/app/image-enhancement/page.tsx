@@ -22,7 +22,9 @@ import
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { BackgroundGradientDemo } from "@/components/ui/background-gradient-demo";
+import { useI18n } from "@/lib/i18n";
 
 interface ImageMetadata
 {
@@ -43,6 +45,7 @@ interface EnhancementOptions
 
 export default function ImageEnhancementPage()
 {
+  const { t } = useI18n();
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [enhancedImage, setEnhancedImage] = useState<string | null>(null);
   const [imageMetadata, setImageMetadata] = useState<ImageMetadata | null>(null);
@@ -63,13 +66,17 @@ export default function ImageEnhancementPage()
   >('modern');
   const [variantSeed, setVariantSeed] = useState<number>(Math.floor(Math.random() * 1e6));
   const [intensity, setIntensity] = useState<'subtle' | 'balanced' | 'bold'>('balanced');
-  const [speedProfile, setSpeedProfile] = useState<'fast' | 'balanced' | 'hq'>('balanced');
+  const [speedProfile, setSpeedProfile] = useState<'fast' | 'balanced' | 'hq' | 'ultra'>('balanced');
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isVideoGenerating, setIsVideoGenerating] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   const enhancementOptions: EnhancementOptions = {
-    professional: { name: "🎯 Professional", description: "Perfect for real estate marketing" },
-    brightness: { name: "☀️ Brightness", description: "Improve lighting and visibility" },
-    contrast: { name: "⚡ Contrast", description: "Enhance clarity and definition" },
-    color: { name: "🎨 Color Enhancement", description: "Vibrant and appealing colors" },
+    professional: { name: t.imageEnhancement.options.professionalName, description: t.imageEnhancement.options.professionalDesc },
+    brightness: { name: t.imageEnhancement.options.brightnessName, description: t.imageEnhancement.options.brightnessDesc },
+    contrast: { name: t.imageEnhancement.options.contrastName, description: t.imageEnhancement.options.contrastDesc },
+    color: { name: t.imageEnhancement.options.colorName, description: t.imageEnhancement.options.colorDesc },
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) =>
@@ -121,6 +128,9 @@ export default function ImageEnhancementPage()
       const img = new Image();
       img.onload = () =>
       {
+        if (!isFinite(maxDim) || maxDim <= 0) {
+          return resolve(dataUrl);
+        }
         const ratio = Math.min(1, maxDim / Math.max(img.width, img.height));
         if (ratio === 1) return resolve(dataUrl);
         const canvas = document.createElement('canvas');
@@ -197,12 +207,12 @@ export default function ImageEnhancementPage()
     try {
       // Extract base64 data from data URL after optional downscale (based on speed profile)
       const profile = speedProfile;
-      const maxDim = profile === 'fast' ? 900 : profile === 'hq' ? 1400 : 1080;
-      const jpegQ = profile === 'fast' ? 0.8 : profile === 'hq' ? 0.9 : 0.85;
-      const preprocessed = await downscaleDataUrl(originalImage, maxDim, jpegQ);
+      const maxDim = profile === 'fast' ? 900 : profile === 'hq' ? 1600 : profile === 'ultra' ? Infinity : 1200;
+      const jpegQ = profile === 'fast' ? 0.8 : profile === 'hq' ? 0.92 : profile === 'ultra' ? 0.95 : 0.88;
+      const preprocessed = profile === 'ultra' ? originalImage : await downscaleDataUrl(originalImage, maxDim, jpegQ);
       const base64Data = preprocessed.split(',')[1];
 
-      setProcessingStep("🤖 Processing with Google Nano Banana AI...");
+      setProcessingStep(t.imageEnhancement.processing);
 
       const maxAttempts = 3;
       let defaultDelay = 30; // seconds
@@ -213,7 +223,7 @@ export default function ImageEnhancementPage()
         setAttempt(currentAttempt);
 
         const controller = new AbortController();
-        const timeoutMs = profile === 'fast' ? 25000 : profile === 'hq' ? 60000 : 45000;
+        const timeoutMs = profile === 'fast' ? 25000 : profile === 'hq' ? 60000 : profile === 'ultra' ? 90000 : 45000;
         const timeout = setTimeout(() => controller.abort(), timeoutMs);
         const response = await fetch('/api/enhance-image', {
           method: 'POST',
@@ -229,6 +239,7 @@ export default function ImageEnhancementPage()
             designTheme,
             variantSeed,
             intensity,
+            quality: speedProfile,
           }),
         });
         clearTimeout(timeout);
@@ -330,14 +341,13 @@ export default function ImageEnhancementPage()
         <div className="text-center space-y-6 mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600/10 to-pink-600/10 border border-purple-200/50 dark:border-purple-800/50">
             <Sparkles className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-700 dark:text-purple-300">AI-Powered Enhancement</span>
+            <span className="text-sm font-medium text-purple-700 dark:text-purple-300">{t.imageEnhancement.headerBadge}</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-900 via-pink-900 to-red-900 dark:from-purple-100 dark:via-pink-100 dark:to-red-100 bg-clip-text text-transparent">
-            Property Image Enhancement
+            {t.imageEnhancement.title}
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto leading-relaxed">
-            Transform your property photos with Google&apos;s advanced Nano Banana AI technology.
-            Upload, enhance, and download professional-quality images for your real estate listings.
+            {t.imageEnhancement.subtitle}
           </p>
         </div>
 
@@ -350,8 +360,8 @@ export default function ImageEnhancementPage()
                   <Upload className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold">Upload Image</CardTitle>
-                  <CardDescription>Drop your property image here</CardDescription>
+                  <CardTitle className="text-xl font-bold">{t.imageEnhancement.uploadTitle}</CardTitle>
+                  <CardDescription>{t.imageEnhancement.uploadDesc}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -371,10 +381,10 @@ export default function ImageEnhancementPage()
                   </div>
                   <div>
                     <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                      {isDragActive ? "Drop your image here!" : "Click or drag to upload"}
+                      {isDragActive ? t.imageEnhancement.dropActive : t.imageEnhancement.dropIdle}
                     </p>
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
-                      Supports JPG, PNG, WebP up to 10MB
+                      {t.imageEnhancement.supports}
                     </p>
                   </div>
                 </div>
@@ -386,27 +396,27 @@ export default function ImageEnhancementPage()
                   <CardHeader className="pb-3">
                     <CardTitle className="text-sm font-semibold flex items-center gap-2">
                       <Info className="h-4 w-4" />
-                      Image Properties
+                      {t.imageEnhancement.imageProps}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-3">
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
-                        <span className="font-medium text-slate-600 dark:text-slate-400">Name:</span>
+                        <span className="font-medium text-slate-600 dark:text-slate-400">{t.imageEnhancement.metaName}</span>
                         <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">{imageMetadata.name}</p>
                       </div>
                       <div>
-                        <span className="font-medium text-slate-600 dark:text-slate-400">Size:</span>
+                        <span className="font-medium text-slate-600 dark:text-slate-400">{t.imageEnhancement.metaSize}</span>
                         <p className="font-semibold text-slate-900 dark:text-slate-100">{formatFileSize(imageMetadata.size)}</p>
                       </div>
                       <div>
-                        <span className="font-medium text-slate-600 dark:text-slate-400">Dimensions:</span>
+                        <span className="font-medium text-slate-600 dark:text-slate-400">{t.imageEnhancement.metaDimensions}</span>
                         <p className="font-semibold text-slate-900 dark:text-slate-100">
                           {imageMetadata.dimensions.width} × {imageMetadata.dimensions.height}
                         </p>
                       </div>
                       <div>
-                        <span className="font-medium text-slate-600 dark:text-slate-400">Format:</span>
+                        <span className="font-medium text-slate-600 dark:text-slate-400">{t.imageEnhancement.metaFormat}</span>
                         <p className="font-semibold text-slate-900 dark:text-slate-100">{imageMetadata.type}</p>
                       </div>
                     </div>
@@ -417,40 +427,22 @@ export default function ImageEnhancementPage()
               {/* Room Type Dropdown */}
               {originalImage && (
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">Select Room Type</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t.imageEnhancement.selectRoomType}</h3>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" className="w-full justify-between rounded-xl">
                         <span className="truncate">
-                          {({
-                            living_room: 'Living Room',
-                            bedroom: 'Bedroom',
-                            kitchen: 'Kitchen',
-                            bathroom: 'Bathroom',
-                            dining_room: 'Dining Room',
-                            office: 'Home Office',
-                            outdoor: 'Outdoor',
-                            other: 'Other',
-                          } as Record<string, string>)[roomType]}
+                          {t.imageEnhancement.roomLabels[roomType]}
                         </span>
                         <span className="opacity-70">▼</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-full">
-                      <DropdownMenuLabel>Room Type</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t.imageEnhancement.selectRoomType}</DropdownMenuLabel>
                       <DropdownMenuRadioGroup value={roomType} onValueChange={(v) => setRoomType(v as typeof roomType)}>
-                        {([
-                          ['living_room', 'Living Room'],
-                          ['bedroom', 'Bedroom'],
-                          ['kitchen', 'Kitchen'],
-                          ['bathroom', 'Bathroom'],
-                          ['dining_room', 'Dining Room'],
-                          ['office', 'Home Office'],
-                          ['outdoor', 'Outdoor'],
-                          ['other', 'Other'],
-                        ] as [string, string][]).map(([value, label]) => (
+                        {(['living_room', 'bedroom', 'kitchen', 'bathroom', 'dining_room', 'office', 'outdoor', 'other'] as const).map(value => (
                           <DropdownMenuRadioItem key={value} value={value}>
-                            {label}
+                            {t.imageEnhancement.roomLabels[value]}
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
@@ -462,31 +454,20 @@ export default function ImageEnhancementPage()
               {/* Design Theme Dropdown */}
               {originalImage && (
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">Select Design Theme</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t.imageEnhancement.selectDesignTheme}</h3>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" className="w-full justify-between rounded-xl">
-                        <span className="truncate capitalize">{designTheme}</span>
+                        <span className="truncate capitalize">{t.imageEnhancement.themeLabels[designTheme]}</span>
                         <span className="opacity-70">▼</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-full">
-                      <DropdownMenuLabel>Design Theme</DropdownMenuLabel>
+                      <DropdownMenuLabel>{t.imageEnhancement.selectDesignTheme}</DropdownMenuLabel>
                       <DropdownMenuRadioGroup value={designTheme} onValueChange={(v) => setDesignTheme(v as typeof designTheme)}>
-                        {([
-                          ['modern', 'Modern'],
-                          ['minimalist', 'Minimalist'],
-                          ['industrial', 'Industrial'],
-                          ['scandinavian', 'Scandinavian'],
-                          ['traditional', 'Traditional'],
-                          ['bohemian', 'Bohemian'],
-                          ['rustic', 'Rustic'],
-                          ['coastal', 'Coastal'],
-                          ['vintage', 'Vintage'],
-                          ['luxury', 'Luxury'],
-                        ] as [string, string][]).map(([value, label]) => (
+                        {(['modern', 'minimalist', 'industrial', 'scandinavian', 'traditional', 'bohemian', 'rustic', 'coastal', 'vintage', 'luxury'] as const).map(value => (
                           <DropdownMenuRadioItem key={value} value={value}>
-                            {label}
+                            {t.imageEnhancement.themeLabels[value]}
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
@@ -499,20 +480,29 @@ export default function ImageEnhancementPage()
               {originalImage && (
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" onClick={() => setVariantSeed(Math.floor(Math.random() * 1e6))} className="rounded-xl">New Design</Button>
-                    <Button variant="outline" onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()} className="rounded-xl">Change Image</Button>
+                    <Button variant="outline" onClick={() => setVariantSeed(Math.floor(Math.random() * 1e6))} className="rounded-xl">{t.imageEnhancement.controls.newDesign}</Button>
+                    <Button variant="outline" onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()} className="rounded-xl">{t.imageEnhancement.controls.changeImage}</Button>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {(['subtle', 'balanced', 'bold'] as const).map(v => (
-                      <Button key={v} variant={intensity === v ? "default" : "outline"} className="rounded-xl" onClick={() => setIntensity(v)}>
-                        {v.charAt(0).toUpperCase() + v.slice(1)}
+                    {([
+                      ['subtle', t.imageEnhancement.controls.intensitySubtle],
+                      ['balanced', t.imageEnhancement.controls.intensityBalanced],
+                      ['bold', t.imageEnhancement.controls.intensityBold],
+                    ] as const).map(([v, label]) => (
+                      <Button key={v} variant={intensity === v ? "default" : "outline"} className="rounded-xl" onClick={() => setIntensity(v as typeof intensity)}>
+                        {label}
                       </Button>
                     ))}
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['fast', 'balanced', 'hq'] as const).map(v => (
-                      <Button key={v} variant={speedProfile === v ? "default" : "outline"} className="rounded-xl" onClick={() => setSpeedProfile(v)}>
-                        {v === 'hq' ? 'HQ' : v.charAt(0).toUpperCase() + v.slice(1)}
+                  <div className="grid grid-cols-4 gap-2">
+                    {([
+                      ['fast', t.imageEnhancement.controls.speedFast],
+                      ['balanced', t.imageEnhancement.controls.speedBalanced],
+                      ['hq', t.imageEnhancement.controls.speedHQ],
+                      ['ultra', t.imageEnhancement.controls.speedUltra],
+                    ] as const).map(([v, label]) => (
+                      <Button key={v} variant={speedProfile === v ? "default" : "outline"} className="rounded-xl" onClick={() => setSpeedProfile(v as typeof speedProfile)}>
+                        {label}
                       </Button>
                     ))}
                   </div>
@@ -522,7 +512,7 @@ export default function ImageEnhancementPage()
               {/* Enhancement Options */}
               {originalImage && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">Enhancement Type</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t.imageEnhancement.enhancementTypeTitle}</h3>
                   <div className="space-y-2">
                     {Object.entries(enhancementOptions).map(([key, option]) => (
                       <button
@@ -556,7 +546,7 @@ export default function ImageEnhancementPage()
                   ) : (
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4" />
-                      <span>Generate Design · {roomType.replace('_', ' ')} · {designTheme}</span>
+                      <span>{t.imageEnhancement.enhanceButton} · {t.imageEnhancement.roomLabels[roomType]} · {t.imageEnhancement.themeLabels[designTheme]}</span>
                     </div>
                   )}
                 </Button>
@@ -635,8 +625,8 @@ export default function ImageEnhancementPage()
                   <ImageIcon className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold">Before & After Comparison</CardTitle>
-                  <CardDescription>See the AI enhancement results</CardDescription>
+                  <CardTitle className="text-xl font-bold">{t.imageEnhancement.compareTitle}</CardTitle>
+                  <CardDescription>{t.imageEnhancement.compareSubtitle}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -659,7 +649,7 @@ export default function ImageEnhancementPage()
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <Badge variant="outline" className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                        📷 Original
+                        {t.imageEnhancement.statuses.original}
                       </Badge>
                     </div>
                     <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden">
@@ -682,7 +672,7 @@ export default function ImageEnhancementPage()
                           : "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300"
                           }`}
                       >
-                        {enhancedImage ? "✨ Enhanced" : "⏳ Waiting"}
+                        {enhancedImage ? t.imageEnhancement.statuses.enhanced : t.imageEnhancement.statuses.waiting}
                       </Badge>
                       {enhancedImage && (
                         <Button
@@ -695,7 +685,7 @@ export default function ImageEnhancementPage()
                         </Button>
                       )}
                     </div>
-                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden flex items-center justify-center">
+                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden flex items-center justify-center relative">
                       {enhancedImage ? (
                         <>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -704,6 +694,24 @@ export default function ImageEnhancementPage()
                             alt="Enhanced property"
                             className="w-full h-full object-cover"
                           />
+                          <div className="absolute bottom-4 right-4 flex gap-2">
+                            <Button size="sm" variant="outline" className="rounded-xl" onClick={() => setPreviewOpen(true)}>Preview</Button>
+                            <Button size="sm" variant="outline" className="rounded-xl" disabled={isVideoGenerating} onClick={async () =>
+                            {
+                              if (!enhancedImage) return;
+                              setVideoError(null);
+                              setIsVideoGenerating(true);
+                              try {
+                                const url = await generateKenBurnsWebM(enhancedImage, speedProfile === 'ultra');
+                                setVideoUrl(url);
+                                setPreviewOpen(true);
+                              } catch (e) {
+                                setVideoError(e instanceof Error ? e.message : 'Failed to generate video');
+                              } finally {
+                                setIsVideoGenerating(false);
+                              }
+                            }}>{isVideoGenerating ? 'Generating…' : 'Generate Video'}</Button>
+                          </div>
                         </>
                       ) : isProcessing ? (
                         <div className="text-center space-y-4">
@@ -716,7 +724,7 @@ export default function ImageEnhancementPage()
                       ) : (
                         <div className="text-center space-y-4">
                           <Zap className="h-12 w-12 text-slate-400 mx-auto" />
-                          <p className="text-slate-600 dark:text-slate-400">Enhanced image will appear here</p>
+                          <p className="text-slate-600 dark:text-slate-400">{t.imageEnhancement.messages.waitEnhancedHere}</p>
                         </div>
                       )}
                     </div>
@@ -788,6 +796,101 @@ export default function ImageEnhancementPage()
           </Card>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="sm:max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>{t.imageEnhancement.modal.preview}</DialogTitle>
+          </DialogHeader>
+          <div className="w-full">
+            {videoUrl ? (
+              <video className="w-full h-auto rounded-xl" src={videoUrl} controls autoPlay />
+            ) : enhancedImage ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={enhancedImage} alt="Preview" className="w-full h-auto rounded-xl" />
+            ) : null}
+            {videoError && (
+              <p className="mt-3 text-sm text-red-600">{videoError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            {videoUrl && (
+              <Button onClick={() =>
+              {
+                if (!videoUrl) return;
+                const a = document.createElement('a');
+                a.href = videoUrl;
+                a.download = 'preview.webm';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }}>{t.imageEnhancement.modal.downloadVideo}</Button>
+            )}
+            {enhancedImage && (
+              <Button variant="outline" onClick={downloadImage}>{t.imageEnhancement.modal.downloadImage}</Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
+}
+
+async function generateKenBurnsWebM(imageDataUrl: string, prefer4K = false): Promise<string>
+{
+  const img = await loadImage(imageDataUrl);
+  const maxSide = prefer4K ? 2160 : 1080;
+  const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas not supported');
+
+  const stream = (canvas as HTMLCanvasElement).captureStream(30);
+  const chunks: BlobPart[] = [];
+  const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+  const done = new Promise<Blob>((resolve) =>
+  {
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+    recorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }));
+  });
+  recorder.start();
+
+  const durationMs = 8000;
+  const fps = 30;
+  const totalFrames = Math.floor((durationMs / 1000) * fps);
+  const startZoom = 1.05;
+  const endZoom = 1.2;
+
+  for (let f = 0; f < totalFrames; f += 1) {
+    const t = f / (totalFrames - 1);
+    const ease = t * t * (3 - 2 * t);
+    const zoom = startZoom + (endZoom - startZoom) * ease;
+    const panX = (Math.sin(t * Math.PI * 2) * 0.03) * canvas.width;
+    const panY = (Math.cos(t * Math.PI * 2) * 0.02) * canvas.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const drawW = canvas.width * zoom;
+    const drawH = canvas.height * zoom;
+    const dx = (canvas.width - drawW) / 2 + panX;
+    const dy = (canvas.height - drawH) / 2 + panY;
+    ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, drawW, drawH);
+    await new Promise(r => setTimeout(r, 1000 / fps));
+  }
+
+  recorder.stop();
+  const blob = await done;
+  return URL.createObjectURL(blob);
+}
+
+function loadImage(src: string): Promise<HTMLImageElement>
+{
+  return new Promise((resolve, reject) =>
+  {
+    const i = new Image();
+    i.onload = () => resolve(i);
+    i.onerror = reject;
+    i.src = src;
+  });
 }

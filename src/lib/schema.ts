@@ -18,7 +18,7 @@ export const user = pgTable("user", {
     .notNull()
     .default("visitor"),
   phone: text("phone"),
-  credits: integer("credits").notNull().default(30),
+  credits: integer("credits").notNull().default(3),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
@@ -164,4 +164,83 @@ export const credits = pgTable("credits", {
   amount: integer("amount").notNull(), // positive = grant/refund, negative = spend
   reason: text("reason"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Social media integrations
+export const socialAccount = pgTable("social_account", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  platform: text("platform", {
+    enum: ["facebook", "instagram", "linkedin", "x", "tiktok"],
+  }).notNull(),
+  handle: text("handle"),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const socialPost = pgTable("social_post", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  contentText: text("content_text").notNull(),
+  mediaUrl: text("media_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const socialSchedule = pgTable("social_schedule", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  postId: uuid("post_id")
+    .notNull()
+    .references(() => socialPost.id, { onDelete: "cascade" }),
+  platform: text("platform", {
+    enum: ["facebook", "instagram", "linkedin", "x", "tiktok"],
+  }).notNull(),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  status: text("status", {
+    enum: ["scheduled", "published", "failed"],
+  })
+    .notNull()
+    .default("scheduled"),
+  publishResult: text("publish_result"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const socialLog = pgTable("social_log", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  scheduleId: uuid("schedule_id")
+    .notNull()
+    .references(() => socialSchedule.id, { onDelete: "cascade" }),
+  level: text("level", { enum: ["info", "error"] })
+    .notNull()
+    .default("info"),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Payments
+export const payment = pgTable("payment", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  provider: text("provider").notNull().default("bictorys"),
+  externalId: text("external_id"),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("XOF"),
+  status: text("status", { enum: ["created", "succeeded", "failed"] })
+    .notNull()
+    .default("created"),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

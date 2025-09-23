@@ -1,14 +1,17 @@
 "use client";
 
 import { useSession } from "@/lib/auth-client";
+import { useI18n } from "@/lib/i18n";
 import { UserProfile } from "@/components/auth/user-profile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, Building2, Calendar, Users, FileText, TrendingUp, Plus, Sparkles, Edit3, Trash2, Settings, Camera } from "lucide-react";
 import Link from "next/link";
 
-export default function DashboardPage() {
+export default function DashboardPage()
+{
   const { data: session, isPending } = useSession();
+  const { t } = useI18n();
 
   if (isPending) {
     return (
@@ -46,10 +49,10 @@ export default function DashboardPage() {
               <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Agent Dashboard</span>
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 dark:from-slate-100 dark:via-blue-100 dark:to-indigo-100 bg-clip-text text-transparent">
-              Welcome back, {session.user.name}! 👋
+              {t.dashboard.welcome(session.user.name)}
             </h1>
             <p className="text-slate-600 dark:text-slate-400 text-lg">
-              Here&apos;s what&apos;s happening with your real estate business today
+              {t.dashboard.subtitle}
             </p>
           </div>
           <div className="flex gap-3">
@@ -59,7 +62,7 @@ export default function DashboardPage() {
             >
               <Link href="/properties/new">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Property
+                {t.dashboard.actions.addProperty}
               </Link>
             </Button>
             <Button
@@ -69,7 +72,7 @@ export default function DashboardPage() {
             >
               <Link href="/image-enhancement">
                 <Camera className="h-4 w-4 mr-2" />
-                Enhance Images
+                {t.dashboard.actions.enhanceImages}
               </Link>
             </Button>
           </div>
@@ -80,7 +83,7 @@ export default function DashboardPage() {
           <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-blue-100">Total Properties</CardTitle>
+              <CardTitle className="text-sm font-medium text-blue-100">{t.dashboard.stats.totalProperties}</CardTitle>
               <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                 <Building2 className="h-4 w-4 text-white" />
               </div>
@@ -94,7 +97,7 @@ export default function DashboardPage() {
           <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-emerald-100">Scheduled Visits</CardTitle>
+              <CardTitle className="text-sm font-medium text-emerald-100">{t.dashboard.stats.scheduledVisits}</CardTitle>
               <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                 <Calendar className="h-4 w-4 text-white" />
               </div>
@@ -108,7 +111,7 @@ export default function DashboardPage() {
           <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-purple-500 to-violet-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-purple-100">Active Prospects</CardTitle>
+              <CardTitle className="text-sm font-medium text-purple-100">{t.dashboard.stats.activeProspects}</CardTitle>
               <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                 <Users className="h-4 w-4 text-white" />
               </div>
@@ -122,7 +125,7 @@ export default function DashboardPage() {
           <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-8 translate-x-8" />
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-orange-100">Contracts Signed</CardTitle>
+              <CardTitle className="text-sm font-medium text-orange-100">{t.dashboard.stats.contractsSigned}</CardTitle>
               <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
                 <FileText className="h-4 w-4 text-white" />
               </div>
@@ -144,8 +147,8 @@ export default function DashboardPage() {
                   <Building2 className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold">Recent Properties</CardTitle>
-                  <CardDescription>Your latest listings</CardDescription>
+                  <CardTitle className="text-xl font-bold">{t.dashboard.recentProperties.title}</CardTitle>
+                  <CardDescription>{t.dashboard.recentProperties.subtitle}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -157,15 +160,15 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-slate-900 dark:text-slate-100">Modern Apartment Downtown</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">€850,000 • For Sale 🏡</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t.dashboard.recentProperties.saleSample}</p>
                     <div className="flex gap-2 mt-2">
                       <Button size="sm" className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-3 py-1 text-xs">
                         <Edit3 className="h-3 w-3 mr-1" />
-                        Edit
+                        {t.dashboard.recentProperties.edit}
                       </Button>
                       <Button size="sm" variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 rounded-lg px-3 py-1 text-xs">
                         <Trash2 className="h-3 w-3 mr-1" />
-                        Delete
+                        {t.dashboard.recentProperties.delete}
                       </Button>
                     </div>
                   </div>
@@ -179,7 +182,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold text-slate-900 dark:text-slate-100">Family House with Garden</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">€1,200/month • For Rent 🏠</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t.dashboard.recentProperties.rentSample}</p>
                     <div className="flex gap-2 mt-2">
                       <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg px-3 py-1 text-xs">
                         <Edit3 className="h-3 w-3 mr-1" />
@@ -201,7 +204,7 @@ export default function DashboardPage() {
               >
                 <Link href="/properties">
                   <Building2 className="h-4 w-4 mr-2" />
-                  View All Properties
+                  {t.dashboard.actions.viewAllProperties}
                 </Link>
               </Button>
             </CardContent>
@@ -215,8 +218,8 @@ export default function DashboardPage() {
                   <Calendar className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold">Upcoming Visits</CardTitle>
-                  <CardDescription>Scheduled appointments</CardDescription>
+                  <CardTitle className="text-xl font-bold">{t.dashboard.upcomingVisits.title}</CardTitle>
+                  <CardDescription>{t.dashboard.upcomingVisits.subtitle}</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -227,12 +230,12 @@ export default function DashboardPage() {
                     <Calendar className="h-8 w-8 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">Modern Apartment Visit</p>
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">{t.dashboard.upcomingVisits.visitOne}</p>
                     <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Tomorrow at 2:00 PM • John Doe 👨</p>
                     <div className="flex gap-2 mt-2">
                       <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white rounded-lg px-3 py-1 text-xs">
                         <Settings className="h-3 w-3 mr-1" />
-                        Manage
+                        {t.dashboard.upcomingVisits.manage}
                       </Button>
                     </div>
                   </div>
@@ -245,7 +248,7 @@ export default function DashboardPage() {
                     <Calendar className="h-8 w-8 text-white" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">Family House Visit</p>
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">{t.dashboard.upcomingVisits.visitTwo}</p>
                     <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">Friday at 10:00 AM • Jane Smith 👩</p>
                     <div className="flex gap-2 mt-2">
                       <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-3 py-1 text-xs">
@@ -264,7 +267,7 @@ export default function DashboardPage() {
               >
                 <Link href="/visits">
                   <Calendar className="h-4 w-4 mr-2" />
-                  View All Visits
+                  {t.dashboard.actions.viewAllVisits}
                 </Link>
               </Button>
             </CardContent>
@@ -278,8 +281,8 @@ export default function DashboardPage() {
                   <Sparkles className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl font-bold">Quick Actions</CardTitle>
-                  <CardDescription>Frequently used actions</CardDescription>
+                  <CardTitle className="text-xl font-bold">Actions rapides</CardTitle>
+                  <CardDescription>Actions fréquentes</CardDescription>
                 </div>
               </div>
             </CardHeader>
@@ -290,7 +293,7 @@ export default function DashboardPage() {
               >
                 <Link href="/properties/new">
                   <Building2 className="h-5 w-5 mr-3" />
-                  🏡 Add New Property
+                  🏡 {t.dashboard.actions.addProperty}
                 </Link>
               </Button>
 
@@ -300,7 +303,7 @@ export default function DashboardPage() {
               >
                 <Link href="/visits/new">
                   <Calendar className="h-5 w-5 mr-3" />
-                  📅 Schedule Visit
+                  📅 {t.dashboard.actions.scheduleVisit}
                 </Link>
               </Button>
 
@@ -310,7 +313,7 @@ export default function DashboardPage() {
               >
                 <Link href="/prospects/new">
                   <Users className="h-5 w-5 mr-3" />
-                  👥 Add Prospect
+                  👥 {t.dashboard.actions.addProspect}
                 </Link>
               </Button>
 
@@ -330,7 +333,7 @@ export default function DashboardPage() {
               >
                 <Link href="/image-enhancement">
                   <Camera className="h-5 w-5 mr-3" />
-                  ✨ Enhance Images
+                  ✨ {t.dashboard.actions.enhanceImagesAction}
                 </Link>
               </Button>
             </CardContent>
@@ -345,8 +348,8 @@ export default function DashboardPage() {
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold">This Month&apos;s Performance Dashboard</CardTitle>
-                <CardDescription>Your key business metrics and achievements</CardDescription>
+                <CardTitle className="text-xl font-bold">{t.dashboard.performance.title}</CardTitle>
+                <CardDescription>{t.dashboard.performance.subtitle}</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -354,19 +357,19 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-2xl text-center hover:shadow-md transition-all">
                 <div className="text-2xl font-bold text-blue-600">5</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Properties Listed 🏘️</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t.dashboard.performance.propertiesListed}</div>
               </div>
               <div className="p-4 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 rounded-2xl text-center hover:shadow-md transition-all">
                 <div className="text-2xl font-bold text-emerald-600">18</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Visits Completed ✅</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t.dashboard.performance.visitsCompleted}</div>
               </div>
               <div className="p-4 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/20 dark:to-violet-950/20 rounded-2xl text-center hover:shadow-md transition-all">
                 <div className="text-2xl font-bold text-purple-600">3</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Contracts Signed 📋</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t.dashboard.performance.contractsSigned}</div>
               </div>
               <div className="p-4 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 rounded-2xl text-center hover:shadow-md transition-all">
-                <div className="text-2xl font-bold text-orange-600">€12,500</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">Revenue Generated 💰</div>
+                <div className="text-2xl font-bold text-orange-600">12 500 FCFA</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 font-medium">{t.dashboard.performance.revenue}</div>
               </div>
             </div>
 
@@ -377,7 +380,7 @@ export default function DashboardPage() {
               >
                 <Link href="/analytics">
                   <TrendingUp className="h-5 w-5 mr-2" />
-                  📊 View Detailed Analytics
+                  📊 {t.dashboard.actions.analyticsCta}
                 </Link>
               </Button>
             </div>

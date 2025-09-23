@@ -36,6 +36,8 @@ export interface ImageEnhancementRequest {
   // Variation & strength controls
   variantSeed?: number;
   intensity?: "subtle" | "balanced" | "bold";
+  // Quality profile to control model and output clarity
+  quality?: "fast" | "balanced" | "hq" | "ultra";
 }
 
 export interface ImageEnhancementResult {
@@ -70,8 +72,12 @@ export async function enhancePropertyImage(
       responseModalities: ["IMAGE", "TEXT"] as string[],
     };
 
-    // Allow overriding the model via env; default to a widely available image-capable model
-    const model = process.env.GEMINI_IMAGE_MODEL || "gemini-2.0-flash-exp";
+    // Model selection: prefer ultra-clear preview model for ultra quality
+    const ultraModel =
+      process.env.GEMINI_IMAGE_MODEL_ULTRA || "gemini-2.5-flash-image-preview";
+    const defaultModel =
+      process.env.GEMINI_IMAGE_MODEL || "gemini-2.0-flash-exp";
+    const model = request.quality === "ultra" ? ultraModel : defaultModel;
 
     const enhancementPrompts = {
       professional:
@@ -127,7 +133,8 @@ Stage cohesive furniture/decor/colors consistent with ${
 Variation seed: ${String(
           request.variantSeed ?? "auto"
         )} (produce a distinct variation).
-Avoid text overlays, watermarks or borders. Output only the redesigned photo.`
+Avoid text overlays, watermarks or borders.
+Output a high-resolution photo. Match or exceed the input resolution without adding borders.`
       : enhancementPrompts[
           (request.enhancementType ||
             "professional") as keyof typeof enhancementPrompts

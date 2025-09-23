@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, BedDouble, Maximize, Euro, Filter, Search, Heart, Eye, Camera, Sparkles } from "lucide-react";
+import { MapPin, BedDouble, Maximize, Filter, Search, Heart, Eye, Camera, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 
@@ -108,10 +108,9 @@ export default function PropertiesPage()
   const formatPrice = (price: string, type: "rent" | "sale") =>
   {
     const numPrice = parseInt(price);
-    if (type === "rent") {
-      return `€${numPrice.toLocaleString()}/${t.properties.perMonth}`;
-    }
-    return `€${numPrice.toLocaleString()}`;
+    const formatted = `${numPrice.toLocaleString()} FCFA`;
+    if (type === "rent") return `${formatted}/${t.properties.perMonth}`;
+    return formatted;
   };
 
   if (loading) {
@@ -261,7 +260,7 @@ export default function PropertiesPage()
                   {/* Price Display */}
                   <div className="flex items-center gap-2 p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-blue-900/20 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
                     <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
-                      <Euro className="h-5 w-5 text-white" />
+                      <span className="text-white text-xs font-bold">FCFA</span>
                     </div>
                     <div>
                       <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">

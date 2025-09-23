@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Camera, Loader2, Sparkles, LayoutGrid, Download, Image as ImageIcon } from "lucide-react";
 
 type RoomType =
@@ -58,6 +59,11 @@ export default function RoomRedesignPage()
     const [fileName, setFileName] = useState<string | null>(null);
     const [showDownloadToast, setShowDownloadToast] = useState(false);
     const [showRedesignToast, setShowRedesignToast] = useState(false);
+    const [speedProfile, setSpeedProfile] = useState<"fast" | "balanced" | "hq" | "ultra">("fast");
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [videoUrl, setVideoUrl] = useState<string | null>(null);
+    const [isVideoGenerating, setIsVideoGenerating] = useState(false);
+    const [videoError, setVideoError] = useState<string | null>(null);
     useEffect(() =>
     {
         if (cooldown <= 0) return;
@@ -156,7 +162,12 @@ export default function RoomRedesignPage()
         if (!originalImage || !mimeType) return;
         setIsProcessing(true);
         setResults({});
-        const base64 = originalImage.split(",")[1];
+        // Preprocess resolution based on profile to control clarity
+        const profile = speedProfile;
+        const maxDim = profile === "fast" ? 900 : profile === "hq" ? 1600 : profile === "ultra" ? Infinity : 1200;
+        const jpegQ = profile === "fast" ? 0.8 : profile === "hq" ? 0.92 : profile === "ultra" ? 0.95 : 0.88;
+        const preprocessed = profile === "ultra" ? originalImage : await downscaleDataUrl(originalImage, maxDim, jpegQ);
+        const base64 = preprocessed.split(",")[1];
         const themesToGenerate = activeTheme ? [activeTheme] : selectedThemes.slice(0, 1);
         const res = await fetch("/api/redesign-room", {
             method: "POST",
@@ -168,6 +179,7 @@ export default function RoomRedesignPage()
                 themes: themesToGenerate,
                 variantSeed,
                 intensity,
+                quality: speedProfile,
             }),
         });
         let data: any = {};
@@ -217,6 +229,32 @@ export default function RoomRedesignPage()
             setTimeout(() => setShowRedesignToast(false), 2500);
         }
         setIsProcessing(false);
+    };
+
+    // Utility: downscale keeping aspect ratio; Infinity or <=0 keeps original
+    const downscaleDataUrl = (dataUrl: string, maxDim = 1080, quality = 0.9): Promise<string> =>
+    {
+        return new Promise((resolve) =>
+        {
+            const img = new Image();
+            img.onload = () =>
+            {
+                if (!isFinite(maxDim) || maxDim <= 0) {
+                    return resolve(dataUrl);
+                }
+                const ratio = Math.min(1, maxDim / Math.max(img.width, img.height));
+                if (ratio === 1) return resolve(dataUrl);
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.round(img.width * ratio);
+                canvas.height = Math.round(img.height * ratio);
+                const ctx = canvas.getContext("2d");
+                if (!ctx) return resolve(dataUrl);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                resolve(canvas.toDataURL("image/jpeg", quality));
+            };
+            img.onerror = () => resolve(dataUrl);
+            img.src = dataUrl;
+        });
     };
 
     const toggleTheme = (t: DesignTheme) =>
@@ -372,6 +410,19 @@ export default function RoomRedesignPage()
 
                                     {/* Intensity buttons removed per request */}
 
+                                    {/* Quality profile */}
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold">Quality</h3>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {(["fast", "balanced", "hq", "ultra"] as const).map((q) => (
+                                                <Button key={q} variant={speedProfile === q ? "default" : "outline"} className="rounded-xl" onClick={() => setSpeedProfile(q)}>
+                                                    {q === "hq" ? "HQ" : q === "ultra" ? "Ultra" : q.charAt(0).toUpperCase() + q.slice(1)}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                        <div className="text-xs text-slate-500">Ultra keeps original resolution for maximum clarity.</div>
+                                    </div>
+
                                     {/* Custom prompt removed per request */}
 
                                     <div className="flex justify-end">
@@ -405,24 +456,15 @@ export default function RoomRedesignPage()
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden flex items-center justify-center">
-                                        {activeTheme ? (
-                                            typeof results[activeTheme] === "string" ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={results[activeTheme] as string} alt={activeTheme} className="w-full h-full object-cover" />
-                                            ) : isProcessing ? (
-                                                <div className="text-center space-y-4">
-                                                    <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto" />
-                                                    <p className="text-sm text-slate-600 dark:text-slate-400">Generating {activeTheme} design...</p>
-                                                </div>
-                                            ) : (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={originalImage} alt="Original" className="w-full h-full object-cover" />
-                                            )
-                                        ) : (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={originalImage} alt="Original" className="w-full h-full object-cover" />
-                                        )}
+                                    <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden flex items-center justify-center relative">
+                                        <Slideshow
+                                            images={selectedThemes
+                                                .map((t) => results[t])
+                                                .filter((v): v is string => typeof v === "string")
+                                                .slice(0, 6)}
+                                            fallback={originalImage || undefined}
+                                            secondsPerSlide={2.2}
+                                        />
                                     </div>
 
                                     <div className="flex items-center gap-3 justify-end">
@@ -443,6 +485,31 @@ export default function RoomRedesignPage()
                                             }}
                                         >
                                             <Download className="h-4 w-4 mr-2" /> Download
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            className="rounded-xl px-4"
+                                            onClick={async () =>
+                                            {
+                                                const slides = selectedThemes
+                                                    .map((t) => results[t])
+                                                    .filter((v): v is string => typeof v === "string");
+                                                const sources = slides.length > 0 ? slides : [originalImage as string];
+                                                setVideoError(null);
+                                                setIsVideoGenerating(true);
+                                                try {
+                                                    const url = await generateSlideshowWebM(sources, { prefer4K: speedProfile === "ultra", secondsPerSlide: 2.2 });
+                                                    setVideoUrl(url);
+                                                    setPreviewOpen(true);
+                                                } catch (e) {
+                                                    setVideoError(e instanceof Error ? e.message : "Failed to generate video");
+                                                } finally {
+                                                    setIsVideoGenerating(false);
+                                                }
+                                            }}
+                                            disabled={!originalImage || isVideoGenerating}
+                                        >
+                                            {isVideoGenerating ? "Generating…" : "Generate Video"}
                                         </Button>
                                         <Button
                                             className="rounded-xl"
@@ -473,8 +540,141 @@ export default function RoomRedesignPage()
                     </Card>
                 </div>
             </div>
+            {/* Preview Modal */}
+            <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+                <DialogContent className="sm:max-w-5xl">
+                    <DialogHeader>
+                        <DialogTitle>Preview</DialogTitle>
+                    </DialogHeader>
+                    <div className="w-full">
+                        {videoUrl ? (
+                            <video className="w-full h-auto rounded-xl" src={videoUrl} controls autoPlay />
+                        ) : (
+                            <Slideshow
+                                images={selectedThemes
+                                    .map((t) => results[t])
+                                    .filter((v): v is string => typeof v === "string")
+                                    .slice(0, 6)}
+                                fallback={originalImage || undefined}
+                                secondsPerSlide={2.2}
+                            />
+                        )}
+                        {videoError && (
+                            <p className="mt-3 text-sm text-red-600">{videoError}</p>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        {videoUrl && (
+                            <Button onClick={() =>
+                            {
+                                if (!videoUrl) return;
+                                const a = document.createElement('a');
+                                a.href = videoUrl;
+                                a.download = 'preview.webm';
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            }}>Download Video</Button>
+                        )}
+                        {activeTheme && typeof results[activeTheme] === "string" && (
+                            <Button variant="outline" onClick={() =>
+                            {
+                                const a = document.createElement('a');
+                                a.href = results[activeTheme] as string;
+                                a.download = `redesign_${activeTheme}.jpg`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            }}>Download Image</Button>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     );
+}
+
+async function generateSlideshowWebM(imageDataUrls: string[], opts: { prefer4K?: boolean; secondsPerSlide?: number } = {}): Promise<string>
+{
+    const prefer4K = opts.prefer4K ?? false;
+    const secondsPerSlide = opts.secondsPerSlide ?? 2.5;
+    const imgs = await Promise.all(imageDataUrls.map((u) => loadImage(u)));
+    const maxW = Math.max(...imgs.map((i) => i.width));
+    const maxH = Math.max(...imgs.map((i) => i.height));
+    const maxSide = prefer4K ? 2160 : 1080;
+    const scale = Math.min(1, maxSide / Math.max(maxW, maxH));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(maxW * scale);
+    canvas.height = Math.round(maxH * scale);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas not supported');
+
+    const stream = (canvas as HTMLCanvasElement).captureStream(30);
+    const chunks: BlobPart[] = [];
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+    const done = new Promise<Blob>((resolve) =>
+    {
+        recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => resolve(new Blob(chunks, { type: 'video/webm' }));
+    });
+    recorder.start();
+
+    const fps = 30;
+    const framesPerSlide = Math.max(1, Math.floor(secondsPerSlide * fps));
+    const crossFadeFrames = Math.min(10, Math.floor(framesPerSlide / 5));
+
+    for (let s = 0; s < imgs.length; s += 1) {
+        const current = imgs[s];
+        const next = imgs[(s + 1) % imgs.length];
+        for (let f = 0; f < framesPerSlide; f += 1) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const zoom = 1.05 + 0.1 * (f / framesPerSlide);
+            const drawW = canvas.width * zoom;
+            const drawH = canvas.height * zoom;
+            const dx = (canvas.width - drawW) / 2;
+            const dy = (canvas.height - drawH) / 2;
+            ctx.globalAlpha = 1;
+            ctx.drawImage(current, 0, 0, current.width, current.height, dx, dy, drawW, drawH);
+            if (f >= framesPerSlide - crossFadeFrames) {
+                const t = (f - (framesPerSlide - crossFadeFrames)) / Math.max(1, crossFadeFrames);
+                ctx.globalAlpha = t;
+                ctx.drawImage(next, 0, 0, next.width, next.height, dx, dy, drawW, drawH);
+            }
+            await new Promise(r => setTimeout(r, 1000 / fps));
+        }
+    }
+
+    recorder.stop();
+    const blob = await done;
+    return URL.createObjectURL(blob);
+}
+
+function Slideshow({ images, fallback, secondsPerSlide = 2.5 }: { images: string[]; fallback?: string; secondsPerSlide?: number })
+{
+    const [idx, setIdx] = useState(0);
+    const slides = images.length > 0 ? images : (fallback ? [fallback] : []);
+    useEffect(() =>
+    {
+        if (slides.length <= 1) return;
+        const id = setInterval(() => setIdx((i) => (i + 1) % slides.length), Math.max(1000, secondsPerSlide * 1000));
+        return () => clearInterval(id);
+    }, [slides.length, secondsPerSlide]);
+    if (slides.length === 0) return null as any;
+    return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={slides[idx]} alt="Slideshow" className="w-full h-full object-cover" />
+    );
+}
+
+function loadImage(src: string): Promise<HTMLImageElement>
+{
+    return new Promise((resolve, reject) =>
+    {
+        const i = new Image();
+        i.onload = () => resolve(i);
+        i.onerror = reject;
+        i.src = src;
+    });
 }
 
 

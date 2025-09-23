@@ -33,7 +33,50 @@ export default function NewVisitPage()
                 }),
             });
             if (!res.ok) throw new Error("Request failed");
-            setMessage(t.schedule.success);
+            const json = await res.json();
+            if (json.calendarUrl) {
+                // Show a quick link to add to Google Calendar
+                setMessage(`${t.schedule.success} – ` +
+                    `${typeof window !== 'undefined' ? '' : ''}`);
+                if (typeof window !== 'undefined') {
+                    const anchor = document.createElement('a');
+                    anchor.href = json.calendarUrl as string;
+                    anchor.target = '_blank';
+                    anchor.rel = 'noopener noreferrer';
+                    anchor.textContent = 'Add to Google Calendar';
+                    // Mount ephemeral link next to form footer
+                    const container = document.querySelector('#calendar-link-slot');
+                    if (container) {
+                        container.innerHTML = '';
+                        container.appendChild(anchor);
+                    }
+                }
+            } else {
+                setMessage(t.schedule.success);
+            }
+
+            // Persist to client storage, so Visits page shows the new visit immediately
+            try {
+                const raw = typeof window !== 'undefined' ? window.localStorage.getItem('scheduled_visits') : null;
+                const prev: any[] = raw ? JSON.parse(raw) : [];
+                const id = crypto.randomUUID?.() || String(Date.now());
+                const scheduledDate = new Date(`${formData.get("date")}T${formData.get("time")}:00`).toISOString();
+                const next = [
+                    ...prev,
+                    {
+                        id,
+                        propertyTitle: String(formData.get("propertyTitle") || ""),
+                        propertyAddress: String(formData.get("propertyAddress") || ""),
+                        prospectName: String(formData.get("prospectName") || ""),
+                        prospectEmail: String(formData.get("prospectEmail") || ""),
+                        prospectPhone: String(formData.get("prospectPhone") || ""),
+                        scheduledDate,
+                        status: "scheduled",
+                        notes: String(formData.get("notes") || ""),
+                    },
+                ];
+                if (typeof window !== 'undefined') window.localStorage.setItem('scheduled_visits', JSON.stringify(next));
+            } catch { }
         } catch (e) {
             setMessage(t.schedule.error);
         } finally {
@@ -94,6 +137,7 @@ export default function NewVisitPage()
                         <div className="flex items-center gap-3">
                             <Button type="submit" disabled={submitting}>{t.schedule.submit}</Button>
                             {message && <span className="text-sm">{message}</span>}
+                            <span id="calendar-link-slot" className="text-sm underline text-blue-600" />
                         </div>
                     </form>
                 </CardContent>

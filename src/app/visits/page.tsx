@@ -20,41 +20,7 @@ type Visit = {
   notes?: string;
 };
 
-const mockVisits: Visit[] = [
-  {
-    id: "1",
-    propertyTitle: "Modern Apartment in City Center",
-    propertyAddress: "123 Main Street, Downtown",
-    prospectName: "John Doe",
-    prospectEmail: "john.doe@email.com",
-    prospectPhone: "+1234567890",
-    scheduledDate: "2024-01-25T14:00:00Z",
-    status: "scheduled",
-    notes: "Client interested in quick move-in",
-  },
-  {
-    id: "2",
-    propertyTitle: "Cozy Family House",
-    propertyAddress: "456 Oak Avenue, Suburbs",
-    prospectName: "Jane Smith",
-    prospectEmail: "jane.smith@email.com",
-    prospectPhone: "+1234567891",
-    scheduledDate: "2024-01-26T10:00:00Z",
-    status: "scheduled",
-    notes: "Family with 2 children",
-  },
-  {
-    id: "3",
-    propertyTitle: "Luxury Penthouse",
-    propertyAddress: "789 Sky Tower, Financial District",
-    prospectName: "Mike Johnson",
-    prospectEmail: "mike.johnson@email.com",
-    prospectPhone: "+1234567892",
-    scheduledDate: "2024-01-22T16:00:00Z",
-    status: "completed",
-    notes: "Very interested, wants to make an offer",
-  },
-];
+const mockVisits: Visit[] = [];
 
 export default function VisitsPage()
 {
@@ -65,12 +31,25 @@ export default function VisitsPage()
 
   useEffect(() =>
   {
-    // Simulate API call
-    setTimeout(() =>
+    const load = () =>
     {
-      setVisits(mockVisits);
-      setLoading(false);
-    }, 1000);
+      try {
+        const raw = typeof window !== 'undefined' ? window.localStorage.getItem('scheduled_visits') : null;
+        const list: Visit[] = raw ? JSON.parse(raw) : [];
+        setVisits(Array.isArray(list) ? list : []);
+      } catch {
+        setVisits([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+    const onStorage = (e: StorageEvent) =>
+    {
+      if (e.key === 'scheduled_visits') load();
+    };
+    if (typeof window !== 'undefined') window.addEventListener('storage', onStorage);
+    return () => { if (typeof window !== 'undefined') window.removeEventListener('storage', onStorage); };
   }, []);
 
   const filteredVisits = visits.filter((visit) =>
@@ -98,6 +77,18 @@ export default function VisitsPage()
   {
     const date = new Date(dateString);
     return date.toLocaleDateString() + " at " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const setAndPersist = (next: Visit[]) =>
+  {
+    setVisits(next);
+    try { if (typeof window !== 'undefined') window.localStorage.setItem('scheduled_visits', JSON.stringify(next)); } catch { }
+  };
+
+  const updateStatus = (id: string, status: Visit["status"]) =>
+  {
+    const next = visits.map(v => v.id === id ? { ...v, status } : v);
+    setAndPersist(next);
   };
 
   if (loading) {

@@ -6,6 +6,54 @@ export type Dictionary = {
     english: string;
     french: string;
   };
+  imageEnhancement: {
+    headerBadge: string;
+    title: string;
+    subtitle: string;
+    uploadTitle: string;
+    uploadDesc: string;
+    dropIdle: string;
+    dropActive: string;
+    supports: string;
+    imageProps: string;
+    metaName: string;
+    metaSize: string;
+    metaDimensions: string;
+    metaFormat: string;
+    selectRoomType: string;
+    roomLabels: Record<string, string>;
+    selectDesignTheme: string;
+    themeLabels: Record<string, string>;
+    controls: {
+      newDesign: string;
+      changeImage: string;
+      intensitySubtle: string;
+      intensityBalanced: string;
+      intensityBold: string;
+      speedFast: string;
+      speedBalanced: string;
+      speedHQ: string;
+      speedUltra: string;
+    };
+    enhancementTypeTitle: string;
+    options: {
+      professionalName: string;
+      professionalDesc: string;
+      brightnessName: string;
+      brightnessDesc: string;
+      contrastName: string;
+      contrastDesc: string;
+      colorName: string;
+      colorDesc: string;
+    };
+    enhanceButton: string;
+    compareTitle: string;
+    compareSubtitle: string;
+    processing: string;
+    statuses: { original: string; enhanced: string; waiting: string };
+    messages: { uploadPrompt: string; waitEnhancedHere: string };
+    modal: { preview: string; downloadVideo: string; downloadImage: string };
+  };
   home: {
     subtitle: string;
     heroDescription: string;
@@ -66,6 +114,7 @@ export type Dictionary = {
     dashboard: string;
     roomRedesign: string;
     aiShort: string;
+    socialShare: string;
   };
   properties: {
     loading: string;
@@ -153,5 +202,77 @@ export type Dictionary = {
     submit: string;
     success: string;
     error: string;
+  };
+  social: {
+    title: string;
+    textLabel: string;
+    mediaUrlLabel: string;
+    platformsLabel: string;
+    scheduleAtLabel: string;
+    scheduleCta: string;
+    publishNowCta: string;
+    cancelCta: string;
+    success: string;
+    failure: string;
+    signInRequired: string;
+    connectAccountsHint: string;
+    imagesLabel: string;
+    addImagesCta: string;
+    createVideoCta: string;
+    videoPreview: string;
+    generateCaptionCta: string;
+  };
+  payments: {
+    title: string;
+    subtitle: string;
+    packSmall: string;
+    packMedium: string;
+    packLarge: string;
+    buyCredits: string;
+  };
+  dashboard: {
+    badge: string;
+    welcome: (name: string) => string;
+    subtitle: string;
+    actions: {
+      addProperty: string;
+      enhanceImages: string;
+      viewAllProperties: string;
+      viewAllVisits: string;
+      scheduleVisit: string;
+      addProspect: string;
+      generateContract: string;
+      enhanceImagesAction: string;
+      analyticsCta: string;
+    };
+    stats: {
+      totalProperties: string;
+      scheduledVisits: string;
+      activeProspects: string;
+      contractsSigned: string;
+    };
+    recentProperties: {
+      title: string;
+      subtitle: string;
+      edit: string;
+      delete: string;
+      saleSample: string;
+      rentSample: string;
+    };
+    upcomingVisits: {
+      title: string;
+      subtitle: string;
+      manage: string;
+      visitOne: string;
+      visitTwo: string;
+    };
+    performance: {
+      title: string;
+      subtitle: string;
+      propertiesListed: string;
+      visitsCompleted: string;
+      contractsSigned: string;
+      revenue: string;
+    };
   };
 };

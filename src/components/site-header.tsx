@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { UserProfile } from "@/components/auth/user-profile";
 import { ModeToggle } from "./ui/mode-toggle";
-import { Building2, Sparkles, Camera } from "lucide-react";
+import { Building2, Sparkles, Camera, Share2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { LanguageSwitcher } from "./ui/language-switcher";
 
@@ -58,6 +58,13 @@ export function SiteHeader()
           >
             <Camera className="h-4 w-4" />
             ✨ {t.header.roomRedesign}
+          </Link>
+          <Link
+            href="/social-studio"
+            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-fuchsia-600 dark:hover:text-fuchsia-400 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 rounded-xl transition-all duration-300 flex items-center gap-2"
+          >
+            <Share2 className="h-4 w-4" />
+            {t.header.socialShare}
           </Link>
         </nav>
 
