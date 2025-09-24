@@ -36,7 +36,7 @@ export default function SocialStudioPage()
                 body: JSON.stringify({
                     text,
                     mediaUrl: mediaUrl || undefined,
-                    platforms: (Object.keys(platforms) as Array<keyof typeof platforms>).filter((k) => platforms[k]) as any,
+                    platforms: (Object.keys(platforms) as Array<keyof typeof platforms>).filter((k) => platforms[k]) as (keyof typeof platforms)[],
                     scheduledAt: publishNow ? undefined : (scheduledAt || undefined),
                     publishNow,
                     videoUrl: videoUrl || undefined,
@@ -221,7 +221,7 @@ async function generateSlideshowWebMClient(imageDataUrls: string[], opts: { pref
     if (!ctx) throw new Error('Canvas not supported');
     const stream = canvas.captureStream(30);
     const chunks: BlobPart[] = [];
-    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || AudioContext)();
     const oscillator = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     oscillator.type = 'sine';

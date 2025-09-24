@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 
 // Simple TTS proxy to OpenAI for generating French voice audio

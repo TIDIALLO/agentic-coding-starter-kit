@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { openai } from "@ai-sdk/openai";
 import { streamText, UIMessage, convertToModelMessages } from "ai";
 

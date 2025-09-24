@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { withCredit } from "@/app/api/middleware/with-credit";
 import { requireAuth } from "@/app/api/middleware/require-auth";
@@ -157,7 +158,7 @@ export async function POST(request: NextRequest) {
           (r) =>
             !r.success &&
             (r.errorType === "quota_exceeded" || r.errorType === "rate_limit")
-        ) as any;
+        );
 
         // Always return 200 with structured info so the client can render fallback/UX
         const status = 200;
@@ -166,9 +167,18 @@ export async function POST(request: NextRequest) {
           {
             success: anySuccess,
             results,
-            errorType: quotaIssue?.errorType,
-            retryAfter: quotaIssue?.retryAfter,
-            quotaZero: quotaIssue?.quotaZero,
+            errorType:
+              quotaIssue && !quotaIssue.success
+                ? quotaIssue.errorType
+                : undefined,
+            retryAfter:
+              quotaIssue && !quotaIssue.success
+                ? quotaIssue.retryAfter
+                : undefined,
+            quotaZero:
+              quotaIssue && !quotaIssue.success
+                ? quotaIssue.quotaZero
+                : undefined,
           },
           { status }
         );

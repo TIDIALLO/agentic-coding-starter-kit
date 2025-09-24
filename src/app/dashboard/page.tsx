@@ -12,12 +12,36 @@ import { formatXOF } from "@/lib/currency";
 export default function DashboardPage()
 {
   const { data: session, isPending } = useSession();
+  const [loading, setLoading] = React.useState(true);
+  const [metrics, setMetrics] = React.useState<{
+    totalIncomeMonth: number;
+    totalExpensesMonth: number;
+    netBalance: number;
+    revenueTrend: { label: string; value: number }[];
+    revenueByType: { label: string; value: number }[];
+  } | null>(null);
+
+  React.useEffect(() =>
+  {
+    let cancelled = false;
+    async function load()
+    {
+      try {
+        const res = await fetch("/api/dashboard/metrics", { next: { revalidate: 60 } });
+        if (!res.ok) throw new Error("metrics_unavailable");
+        const json = await res.json();
+        if (!cancelled) setMetrics(json);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   if (isPending) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        Loading...
-      </div>
+      <div className="flex justify-center items-center h-screen">Loading...</div>
     );
   }
 
@@ -37,27 +61,6 @@ export default function DashboardPage()
       </div>
     );
   }
-
-  const [loading, setLoading] = React.useState(true);
-  const [metrics, setMetrics] = React.useState<{ totalIncomeMonth: number; totalExpensesMonth: number; netBalance: number; revenueTrend: { label: string; value: number; }[]; revenueByType: { label: string; value: number; }[]; } | null>(null);
-
-  React.useEffect(() =>
-  {
-    let cancelled = false;
-    async function load()
-    {
-      try {
-        const res = await fetch("/api/dashboard/metrics", { next: { revalidate: 60 } });
-        if (!res.ok) throw new Error("metrics_unavailable");
-        const json = await res.json();
-        if (!cancelled) setMetrics(json);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white">

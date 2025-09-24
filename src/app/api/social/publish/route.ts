@@ -1,8 +1,8 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/app/api/middleware/require-auth";
 import { db } from "@/lib/db";
 import { socialPost, socialSchedule, socialLog } from "@/lib/schema";
-import { eq } from "drizzle-orm";
 import { UploadPost } from "@/lib/upload-post";
 
 type PublishBody = {
@@ -54,11 +54,8 @@ export async function POST(req: NextRequest) {
         })
       );
 
-      let uploadResults: Array<{
-        platform: string;
-        id?: string;
-        error?: string;
-      }> = [];
+      type UploadResult = { platform: string; id?: string; error?: string };
+      let uploadResults: UploadResult[] = [];
       const publicVideoUrl = videoUrl || mediaUrl;
       if (publishNow && publicVideoUrl && platforms.length > 0) {
         try {
@@ -69,11 +66,19 @@ export async function POST(req: NextRequest) {
             title: title || text?.slice(0, 60) || "Video",
             user: managedUser || "default",
             platforms: ["tiktok"],
-          } as any);
-          uploadResults = [{ platform: platforms[0], id: (result as any)?.id }];
-        } catch (e: any) {
+          });
           uploadResults = [
-            { platform: platforms[0], error: e?.message || "upload_failed" },
+            {
+              platform: platforms[0],
+              id: (result as { id?: string } | any)?.id,
+            },
+          ];
+        } catch (e) {
+          uploadResults = [
+            {
+              platform: platforms[0],
+              error: e instanceof Error ? e.message : "upload_failed",
+            },
           ];
         }
       }

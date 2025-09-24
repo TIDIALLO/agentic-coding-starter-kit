@@ -88,7 +88,7 @@ export default function RoomRedesignPage()
         {
             const i = new Image();
             i.onload = () => resolve(i);
-            i.onerror = reject as any;
+            i.onerror = (err) => reject(err as unknown as Error);
             i.src = src;
         });
         const canvas = document.createElement("canvas");
@@ -182,23 +182,24 @@ export default function RoomRedesignPage()
                 quality: speedProfile,
             }),
         });
-        let data: any = {};
+        let data: unknown = {};
         try {
             data = await res.json();
         } catch (e) {
             // If server returned non-JSON error, surface a generic error per theme
-            const map: Record<DesignTheme, { error: string }> = {} as any;
+            const map: Record<DesignTheme, { error: string }> = {} as Record<DesignTheme, { error: string }>;
             selectedThemes.forEach((t) => (map[t] = { error: "Server error: invalid response" }));
             setResults(map);
             setIsProcessing(false);
             return;
         }
         if (!res.ok) {
-            const map: Record<DesignTheme, { error: string }> = {} as any;
+            const map: Record<DesignTheme, { error: string }> = {} as Record<DesignTheme, { error: string }>;
             if (Array.isArray(data.results)) {
-                (data.results || []).forEach((r: any) =>
+                (Array.isArray((data as { results?: unknown[] }).results) ? (data as { results: unknown[] }).results : []).forEach((r) =>
                 {
-                    if (!r.success) map[r.theme as DesignTheme] = { error: r.error || "Failed" };
+                    const row = r as { success: boolean; theme: DesignTheme; error?: string };
+                    if (!row.success) map[row.theme] = { error: row.error || "Failed" };
                 });
             } else {
                 themesToGenerate.forEach((t) => (map[t] = { error: data.error || "Failed" }));
@@ -210,18 +211,22 @@ export default function RoomRedesignPage()
 
             // Fallback previews if quota/rate limit blocks real generation
             if (data.errorType === "quota_exceeded" || data.errorType === "rate_limit") {
-                const fallbackMap: Record<DesignTheme, string | { error: string }> = {} as any;
+                const fallbackMap: Record<DesignTheme, string | { error: string }> = {} as Record<DesignTheme, string | { error: string }>;
                 for (const t of themesToGenerate) {
                     fallbackMap[t] = await generateFallbackPreview(originalImage, t);
                 }
                 setResults(fallbackMap);
             }
         } else {
-            const map: Record<DesignTheme, string | { error: string }> = {} as any;
-            (data.results || []).forEach((r: any) =>
+            const map: Record<DesignTheme, string | { error: string }> = {} as Record<DesignTheme, string | { error: string }>;
+            (Array.isArray((data as { results?: unknown[] }).results) ? (data as { results: unknown[] }).results : []).forEach((r) =>
             {
-                if (r.success) map[r.theme as DesignTheme] = `data:${r.mimeType};base64,${r.enhancedImageData}`;
-                else map[r.theme as DesignTheme] = { error: r.error || "Failed" };
+                const row = r as { success: boolean; theme: DesignTheme; mimeType?: string; enhancedImageData?: string; error?: string };
+                if (row.success && row.mimeType && row.enhancedImageData) {
+                    map[row.theme] = `data:${row.mimeType};base64,${row.enhancedImageData}`;
+                } else {
+                    map[row.theme] = { error: row.error || "Failed" };
+                }
             });
             setResults(map);
             // Success feedback toast
@@ -659,7 +664,7 @@ function Slideshow({ images, fallback, secondsPerSlide = 2.5 }: { images: string
         const id = setInterval(() => setIdx((i) => (i + 1) % slides.length), Math.max(1000, secondsPerSlide * 1000));
         return () => clearInterval(id);
     }, [slides.length, secondsPerSlide]);
-    if (slides.length === 0) return null as any;
+    if (slides.length === 0) return null;
     return (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={slides[idx]} alt="Slideshow" className="w-full h-full object-cover" />

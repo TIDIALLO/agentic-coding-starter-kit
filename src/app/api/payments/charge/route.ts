@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/app/api/middleware/require-auth";
 import { db } from "@/lib/db";
@@ -40,7 +41,12 @@ export async function POST(req: NextRequest) {
       };
 
       const providerUrl = `${apiBase}/pay/v1/charges?payment_type=card`;
-      const payload = {
+      const payload: {
+        amount: number;
+        currency: string;
+        description: string;
+        metadata: { userId: string; creditsToGrant: number };
+      } = {
         amount,
         currency,
         description,
@@ -48,7 +54,7 @@ export async function POST(req: NextRequest) {
           userId,
           creditsToGrant,
         },
-      } as any;
+      };
 
       const res = await fetch(providerUrl, {
         method: "POST",

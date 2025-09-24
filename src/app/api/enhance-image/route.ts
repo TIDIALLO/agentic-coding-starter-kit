@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { enhancePropertyImage } from "@/lib/google-ai";
 import { requireAuth } from "@/app/api/middleware/require-auth";

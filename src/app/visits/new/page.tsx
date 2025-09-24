@@ -58,7 +58,7 @@ export default function NewVisitPage()
             // Persist to client storage, so Visits page shows the new visit immediately
             try {
                 const raw = typeof window !== 'undefined' ? window.localStorage.getItem('scheduled_visits') : null;
-                const prev: any[] = raw ? JSON.parse(raw) : [];
+                const prev: Array<Record<string, unknown>> = raw ? JSON.parse(raw) as Array<Record<string, unknown>> : [];
                 const id = crypto.randomUUID?.() || String(Date.now());
                 const scheduledDate = new Date(`${formData.get("date")}T${formData.get("time")}:00`).toISOString();
                 const next = [

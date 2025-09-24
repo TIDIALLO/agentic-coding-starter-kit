@@ -1,3 +1,4 @@
+export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { contract } from "@/lib/schema";
@@ -38,8 +39,14 @@ export async function GET() {
       );
 
     // Helper to parse decimal -> number
-    const toNumber = (v: unknown) =>
-      Number(typeof v === "string" ? v : (v as any)) || 0;
+    const toNumber = (v: unknown): number => {
+      if (typeof v === "number") return Number.isFinite(v) ? v : 0;
+      if (typeof v === "string") {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : 0;
+      }
+      return 0;
+    };
 
     // Totals this month
     let totalIncomeMonth = 0;
