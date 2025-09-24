@@ -39,6 +39,9 @@ export default function SocialStudioPage()
                     platforms: (Object.keys(platforms) as Array<keyof typeof platforms>).filter((k) => platforms[k]) as any,
                     scheduledAt: publishNow ? undefined : (scheduledAt || undefined),
                     publishNow,
+                    videoUrl: videoUrl || undefined,
+                    title: text?.slice(0, 60) || undefined,
+                    managedUser: "default",
                 }),
             });
             const json = await res.json();

@@ -3,6 +3,7 @@ import { requireAuth } from "@/app/api/middleware/require-auth";
 import { db } from "@/lib/db";
 import { socialPost, socialSchedule, socialLog } from "@/lib/schema";
 import { eq } from "drizzle-orm";
+import { UploadPost } from "@/lib/upload-post";
 
 type PublishBody = {
   text: string;
@@ -10,13 +11,24 @@ type PublishBody = {
   platforms: Array<"facebook" | "instagram" | "linkedin" | "x" | "tiktok">;
   scheduledAt?: string; // ISO; if absent, publish immediately
   publishNow?: boolean;
+  videoUrl?: string; // public URL to video file
+  title?: string;
+  managedUser?: string; // upload-post managed user handle
 };
 
 export async function POST(req: NextRequest) {
   return requireAuth(req, async (_req, userId) => {
     try {
-      const { text, mediaUrl, platforms, scheduledAt, publishNow } =
-        (await req.json()) as PublishBody;
+      const {
+        text,
+        mediaUrl,
+        platforms,
+        scheduledAt,
+        publishNow,
+        videoUrl,
+        title,
+        managedUser,
+      } = (await req.json()) as PublishBody;
       if (!text || !Array.isArray(platforms) || platforms.length === 0) {
         return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
       }
@@ -42,17 +54,40 @@ export async function POST(req: NextRequest) {
         })
       );
 
-      // Log results (stub immediate publish)
+      let uploadResults: Array<{
+        platform: string;
+        id?: string;
+        error?: string;
+      }> = [];
+      const publicVideoUrl = videoUrl || mediaUrl;
+      if (publishNow && publicVideoUrl && platforms.length > 0) {
+        try {
+          const apiKey = process.env.UPLOAD_POST_API_KEY;
+          if (!apiKey) throw new Error("Missing UPLOAD_POST_API_KEY");
+          const uploader = new UploadPost(apiKey);
+          const result = await uploader.upload(publicVideoUrl, {
+            title: title || text?.slice(0, 60) || "Video",
+            user: managedUser || "default",
+            platforms: ["tiktok"],
+          } as any);
+          uploadResults = [{ platform: platforms[0], id: (result as any)?.id }];
+        } catch (e: any) {
+          uploadResults = [
+            { platform: platforms[0], error: e?.message || "upload_failed" },
+          ];
+        }
+      }
+
       await db.insert(socialLog).values(
         schedules.map((s) => ({
           scheduleId: s.id,
           level: "info",
-          message: s.status === "published" ? "Published (stub)" : "Scheduled",
+          message: s.status === "published" ? "Published" : "Scheduled",
         }))
       );
 
       return NextResponse.json(
-        { ok: true, postId: post.id, schedules },
+        { ok: true, postId: post.id, schedules, uploadResults },
         { status: 201 }
       );
     } catch (e) {
