@@ -3,7 +3,7 @@
 import { useI18n } from "@/lib/i18n";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown-menu";
 import { Button } from "./button";
-import { Globe, Languages } from "lucide-react";
+import { Globe } from "lucide-react";
 
 export function LanguageSwitcher()
 {

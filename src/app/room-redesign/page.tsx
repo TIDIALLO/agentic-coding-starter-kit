@@ -53,7 +53,7 @@ export default function RoomRedesignPage()
     const [originalImage, setOriginalImage] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [results, setResults] = useState<Record<DesignTheme, string | { error: string }>>({});
+    const [results, setResults] = useState<Record<DesignTheme, string | { error: string }>>({} as Record<DesignTheme, string | { error: string }>);
     const [activeTheme, setActiveTheme] = useState<DesignTheme | null>(null);
     const [cooldown, setCooldown] = useState<number>(0);
     const [fileName, setFileName] = useState<string | null>(null);
@@ -110,8 +110,8 @@ export default function RoomRedesignPage()
             luxury: "saturate(1.15) contrast(1.12)",
         };
 
-        // @ts-expect-error - CanvasRenderingContext2D.filter exists in modern browsers
-        ctx.filter = filterByTheme[theme] || "none";
+        // CanvasRenderingContext2D.filter is supported in modern browsers
+        (ctx as CanvasRenderingContext2D).filter = filterByTheme[theme] || "none";
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
         // Subtle vignette for polish
@@ -141,7 +141,7 @@ export default function RoomRedesignPage()
             const dataUrl = e.target?.result as string;
             setOriginalImage(dataUrl);
             setMimeType(file.type || "image/jpeg");
-            setResults({});
+            setResults({} as Record<DesignTheme, string | { error: string }>);
             setFileName(file.name || null);
         };
         reader.readAsDataURL(file);
@@ -161,7 +161,7 @@ export default function RoomRedesignPage()
     {
         if (!originalImage || !mimeType) return;
         setIsProcessing(true);
-        setResults({});
+        setResults({} as Record<DesignTheme, string | { error: string }>);
         // Preprocess resolution based on profile to control clarity
         const profile = speedProfile;
         const maxDim = profile === "fast" ? 900 : profile === "hq" ? 1600 : profile === "ultra" ? Infinity : 1200;
@@ -193,24 +193,32 @@ export default function RoomRedesignPage()
             setIsProcessing(false);
             return;
         }
+        const obj = data as Record<string, unknown>;
         if (!res.ok) {
             const map: Record<DesignTheme, { error: string }> = {} as Record<DesignTheme, { error: string }>;
-            if (Array.isArray(data.results)) {
-                (Array.isArray((data as { results?: unknown[] }).results) ? (data as { results: unknown[] }).results : []).forEach((r) =>
+            const maybeResults = obj.results;
+            if (Array.isArray(maybeResults)) {
+                maybeResults.forEach((r) =>
                 {
-                    const row = r as { success: boolean; theme: DesignTheme; error?: string };
-                    if (!row.success) map[row.theme] = { error: row.error || "Failed" };
+                    if (typeof r !== "object" || r === null) return;
+                    const row = r as { success?: boolean; theme?: unknown; error?: unknown };
+                    if (!row.success && typeof row.theme === "string") {
+                        map[row.theme as DesignTheme] = { error: typeof row.error === "string" ? row.error : "Failed" };
+                    }
                 });
             } else {
-                themesToGenerate.forEach((t) => (map[t] = { error: data.error || "Failed" }));
+                const errMsg = typeof obj.error === "string" ? obj.error : "Failed";
+                themesToGenerate.forEach((t) => (map[t] = { error: errMsg }));
             }
             setResults(map);
-            if (typeof data.retryAfter === "number" && data.retryAfter > 0) {
-                setCooldown(Math.ceil(data.retryAfter));
+            const ra = obj.retryAfter;
+            if (typeof ra === "number" && ra > 0) {
+                setCooldown(Math.ceil(ra));
             }
 
             // Fallback previews if quota/rate limit blocks real generation
-            if (data.errorType === "quota_exceeded" || data.errorType === "rate_limit") {
+            const et = obj.errorType;
+            if (typeof et === "string" && (et === "quota_exceeded" || et === "rate_limit")) {
                 const fallbackMap: Record<DesignTheme, string | { error: string }> = {} as Record<DesignTheme, string | { error: string }>;
                 for (const t of themesToGenerate) {
                     fallbackMap[t] = await generateFallbackPreview(originalImage, t);
@@ -219,13 +227,15 @@ export default function RoomRedesignPage()
             }
         } else {
             const map: Record<DesignTheme, string | { error: string }> = {} as Record<DesignTheme, string | { error: string }>;
-            (Array.isArray((data as { results?: unknown[] }).results) ? (data as { results: unknown[] }).results : []).forEach((r) =>
+            const resultsArr = Array.isArray(obj.results) ? obj.results : [];
+            resultsArr.forEach((r) =>
             {
-                const row = r as { success: boolean; theme: DesignTheme; mimeType?: string; enhancedImageData?: string; error?: string };
-                if (row.success && row.mimeType && row.enhancedImageData) {
-                    map[row.theme] = `data:${row.mimeType};base64,${row.enhancedImageData}`;
-                } else {
-                    map[row.theme] = { error: row.error || "Failed" };
+                if (typeof r !== "object" || r === null) return;
+                const row = r as { success?: boolean; theme?: unknown; mimeType?: unknown; enhancedImageData?: unknown; error?: unknown };
+                if (row.success && typeof row.theme === "string" && typeof row.mimeType === "string" && typeof row.enhancedImageData === "string") {
+                    map[row.theme as DesignTheme] = `data:${row.mimeType};base64,${row.enhancedImageData}`;
+                } else if (typeof row.theme === "string") {
+                    map[row.theme as DesignTheme] = { error: typeof row.error === "string" ? row.error : "Failed" };
                 }
             });
             setResults(map);
@@ -264,7 +274,7 @@ export default function RoomRedesignPage()
 
     const toggleTheme = (t: DesignTheme) =>
     {
-        setResults({});
+        setResults({} as Record<DesignTheme, string | { error: string }>);
         setSelectedThemes((prev) =>
         {
             const has = prev.includes(t);

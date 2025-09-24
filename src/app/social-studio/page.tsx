@@ -193,10 +193,10 @@ export default function SocialStudioPage()
                         <Button onClick={() => history.back()} variant="ghost" className="rounded-xl">{t.social.cancelCta}</Button>
                         {message && <span className="text-sm">{message}</span>}
                         <div className="ml-auto flex items-center gap-2">
-                            <Facebook className="h-4 w-4 text-blue-600" title="Facebook" />
-                            <Instagram className="h-4 w-4 text-pink-600" title="Instagram" />
-                            <Linkedin className="h-4 w-4 text-blue-700" title="LinkedIn" />
-                            <Twitter className="h-4 w-4 text-sky-500" title="Twitter/X" />
+                            <span title="Facebook"><Facebook className="h-4 w-4 text-blue-600" /></span>
+                            <span title="Instagram"><Instagram className="h-4 w-4 text-pink-600" /></span>
+                            <span title="LinkedIn"><Linkedin className="h-4 w-4 text-blue-700" /></span>
+                            <span title="Twitter/X"><Twitter className="h-4 w-4 text-sky-500" /></span>
                         </div>
                     </div>
                 </CardContent>

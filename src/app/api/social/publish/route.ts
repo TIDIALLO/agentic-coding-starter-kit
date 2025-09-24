@@ -67,10 +67,12 @@ export async function POST(req: NextRequest) {
             user: managedUser || "default",
             platforms: ["tiktok"],
           });
+          const maybeId = (result as { id?: string } | Record<string, unknown>)
+            ?.id as string | undefined;
           uploadResults = [
             {
               platform: platforms[0],
-              id: (result as { id?: string } | any)?.id,
+              id: maybeId,
             },
           ];
         } catch (e) {
@@ -83,13 +85,13 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      await db.insert(socialLog).values(
-        schedules.map((s) => ({
-          scheduleId: s.id,
-          level: "info",
-          message: s.status === "published" ? "Published" : "Scheduled",
-        }))
-      );
+      const logs: (typeof socialLog.$inferInsert)[] = schedules.map((s) => ({
+        scheduleId: s.id,
+        level: "info" as const,
+        message: s.status === "published" ? "Published" : "Scheduled",
+      }));
+
+      await db.insert(socialLog).values(logs);
 
       return NextResponse.json(
         { ok: true, postId: post.id, schedules, uploadResults },

@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { payment, credits, user as userTable } from "@/lib/schema";
+import { payment, credits } from "@/lib/schema";
 import { eq, sql } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {

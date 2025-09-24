@@ -42,8 +42,9 @@ export default function PaymentsPage()
             } else {
                 alert("Paiement initié. Suivez les instructions envoyées par le fournisseur.");
             }
-        } catch (e: any) {
-            alert(e.message || "Erreur de paiement");
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : "Erreur de paiement";
+            alert(msg);
         } finally {
             setLoading(null);
         }

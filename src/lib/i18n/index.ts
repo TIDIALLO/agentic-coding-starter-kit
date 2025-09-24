@@ -1,1 +1,2 @@
-export * from "./index.tsx";
+export * from "./provider";
+export * from "./types";

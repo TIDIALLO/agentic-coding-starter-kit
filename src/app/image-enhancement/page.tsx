@@ -35,12 +35,13 @@ interface ImageMetadata
   lastModified: number;
 }
 
+interface EnhancementLabel { name: string; description: string }
 interface EnhancementOptions
 {
-  professional: { name: "🎯 Professional", description: "Perfect for real estate marketing" };
-  brightness: { name: "☀️ Brightness", description: "Improve lighting and visibility" };
-  contrast: { name: "⚡ Contrast", description: "Enhance clarity and definition" };
-  color: { name: "🎨 Color Enhancement", description: "Vibrant and appealing colors" };
+  professional: EnhancementLabel;
+  brightness: EnhancementLabel;
+  contrast: EnhancementLabel;
+  color: EnhancementLabel;
 }
 
 export default function ImageEnhancementPage()
