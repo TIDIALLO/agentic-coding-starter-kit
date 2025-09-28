@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { useDiagnostics } from "@/hooks/use-diagnostics";
-import { Building2, Users, Calendar, FileText, ImageIcon, BarChart3 } from "lucide-react";
+import { Building2, Users, Calendar, FileText, ImageIcon, BarChart3, Video, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useI18n } from "@/lib/i18n";
 
@@ -25,10 +26,12 @@ export default function Home()
     hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0, transition: { ease: "easeOut", duration: 0.5 } },
   } as const;
+  const videoSrc = process.env.NEXT_PUBLIC_HERO_VIDEO_URL || "/hero-demo.webm";
+  const [videoOk, setVideoOk] = useState(true);
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
       <div className="container mx-auto px-4 py-12">
-        <motion.div className="max-w-5xl mx-auto text-center space-y-8" initial="hidden" animate="show" variants={container}>
+        <motion.div className="max-w-6xl mx-auto text-center space-y-8" initial="hidden" animate="show" variants={container}>
           <motion.div variants={item}>
             <BackgroundGradient className="rounded-3xl p-10 border shadow-xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl">
               <div className="flex items-center justify-center gap-3 mb-2">
@@ -39,15 +42,164 @@ export default function Home()
                   ImmoBoost
                 </h1>
               </div>
-              <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">
-                {t.home.subtitle}
-              </h2>
-              <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">
-                {t.home.heroDescription}
-              </p>
+              <h2 className="text-2xl font-semibold text-slate-700 dark:text-slate-300">{t.home.subtitle}</h2>
+              <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">{t.home.heroDescription}</p>
+
+              <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
+                <Button asChild className="h-11 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                  <Link href="/room-redesign" className="flex items-center gap-2"><ImageIcon className="h-4 w-4" /> Générer des images</Link>
+                </Button>
+                <Button asChild variant="outline" className="h-11 px-6">
+                  <Link href="/social-studio" className="flex items-center gap-2"><Share2 className="h-4 w-4" /> Publier sur les réseaux</Link>
+                </Button>
+                <Button asChild variant="outline" className="h-11 px-6">
+                  <Link href="/room-redesign" className="flex items-center gap-2"><Video className="h-4 w-4" /> Créer une vidéo</Link>
+                </Button>
+              </div>
             </BackgroundGradient>
           </motion.div>
+
+          {/* Demo area: living room image (left) + generated video (right) */}
+          <motion.div variants={item} className="mt-4">
+            <div className="mx-auto max-w-6xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Left: Living room image with armchairs */}
+                <div className="rounded-2xl overflow-hidden border bg-white/70 dark:bg-slate-900/60 backdrop-blur">
+                  <div className="relative aspect-video">
+                    <img
+                      src="https://images.unsplash.com/photo-1505691723518-36a5ac3b2b95?auto=format&fit=crop&w=1600&q=80"
+                      alt="Salon moderne avec fauteuils"
+                      className="absolute inset-0 w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+                  </div>
+                </div>
+
+                {/* Right: Generated video preview */}
+                <div className="rounded-2xl overflow-hidden border bg-white/70 dark:bg-slate-900/60 backdrop-blur relative">
+                  <div className="relative aspect-video">
+                    {videoOk ? (
+                      <video
+                        key={videoSrc}
+                        src={videoSrc}
+                        poster="/window.svg"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        onError={() => setVideoOk(false)}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      >
+                        <source src={videoSrc} type="video/webm" />
+                      </video>
+                    ) : (
+                      <div className="absolute inset-0 w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-300">
+                        <div className="text-center space-y-3">
+                          <div className="text-sm">Démo vidéo indisponible</div>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button asChild size="sm" variant="outline"><Link href="/room-redesign">Générer des images</Link></Button>
+                            <Button asChild size="sm" variant="outline"><Link href="/social-studio">Publier</Link></Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
           <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12" variants={container}>
+            {/* 1) Amélioration d'images par IA */}
+            <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                      <ImageIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground mb-2">{t.home.cards.aiTitle}</h3>
+                      <p className="text-muted-foreground leading-relaxed">{t.home.cards.aiDesc}</p>
+                    </div>
+                    <div className="pt-2 mt-auto">
+                      <Button asChild variant="outline" size="sm" className="group-hover:bg-pink-50 group-hover:border-pink-300 transition-all duration-300">
+                        <Link href="/image-enhancement">{t.home.cards.aiCta}</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* 2) Publier sur les réseaux */}
+            <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                      <Share2 className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground mb-2">Publier sur les réseaux</h3>
+                      <p className="text-muted-foreground leading-relaxed">Sélection des plateformes, légendes IA, publication ou planification.</p>
+                    </div>
+                    <div className="pt-2 mt-auto">
+                      <Button asChild variant="outline" size="sm" className="group-hover:bg-cyan-50 group-hover:border-cyan-300 transition-all duration-300">
+                        <Link href="/social-studio">Publier</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* 3) Générer des images */}
+            <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                      <ImageIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground mb-2">Générer des images</h3>
+                      <p className="text-muted-foreground leading-relaxed">Redesign de pièces, prompts personnalisés, variations multi‑seeds.</p>
+                    </div>
+                    <div className="pt-2 mt-auto">
+                      <Button asChild variant="outline" size="sm" className="group-hover:bg-pink-50 group-hover:border-pink-300 transition-all duration-300">
+                        <Link href="/room-redesign">Essayer</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* 4) Créer des vidéos */}
+            <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
+              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
+                <CardContent className="p-8 h-full flex flex-col">
+                  <div className="space-y-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                      <Video className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground mb-2">Créer des vidéos</h3>
+                      <p className="text-muted-foreground leading-relaxed">Diaporamas animés, transitions fluides, export webm.</p>
+                    </div>
+                    <div className="pt-2 mt-auto">
+                      <Button asChild variant="outline" size="sm" className="group-hover:bg-violet-50 group-hover:border-violet-300 transition-all duration-300">
+                        <Link href="/room-redesign">Générer</Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Le reste: gestion, visites, prospects, contrats, analytics */}
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
               <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
                 <CardContent className="p-8 h-full flex flex-col">
@@ -57,9 +209,7 @@ export default function Home()
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-foreground mb-2">{t.home.cards.propertiesTitle}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t.home.cards.propertiesDesc}
-                      </p>
+                      <p className="text-muted-foreground leading-relaxed">{t.home.cards.propertiesDesc}</p>
                     </div>
                     <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-blue-50 group-hover:border-blue-300 transition-all duration-300">
@@ -80,9 +230,7 @@ export default function Home()
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-foreground mb-2">{t.home.cards.visitsTitle}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t.home.cards.visitsDesc}
-                      </p>
+                      <p className="text-muted-foreground leading-relaxed">{t.home.cards.visitsDesc}</p>
                     </div>
                     <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-emerald-50 group-hover:border-emerald-300 transition-all duration-300">
@@ -103,36 +251,11 @@ export default function Home()
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-foreground mb-2">{t.home.cards.prospectsTitle}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t.home.cards.prospectsDesc}
-                      </p>
+                      <p className="text-muted-foreground leading-relaxed">{t.home.cards.prospectsDesc}</p>
                     </div>
                     <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-purple-50 group-hover:border-purple-300 transition-all duration-300">
                         <Link href="/prospects">{t.home.cards.prospectsCta}</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>
-              <Card className="h-full rounded-3xl border-white/60 dark:border-slate-800/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur group shadow-lg transition-all duration-300">
-                <CardContent className="p-8 h-full flex flex-col">
-                  <div className="space-y-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
-                      <ImageIcon className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-foreground mb-2">{t.home.cards.aiTitle}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t.home.cards.aiDesc}
-                      </p>
-                    </div>
-                    <div className="pt-2 mt-auto">
-                      <Button asChild variant="outline" size="sm" className="group-hover:bg-pink-50 group-hover:border-pink-300 transition-all duration-300">
-                        <Link href="/image-enhancement">{t.home.cards.aiCta}</Link>
                       </Button>
                     </div>
                   </div>
@@ -149,9 +272,7 @@ export default function Home()
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-foreground mb-2">{t.home.cards.contractsTitle}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t.home.cards.contractsDesc}
-                      </p>
+                      <p className="text-muted-foreground leading-relaxed">{t.home.cards.contractsDesc}</p>
                     </div>
                     <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-orange-50 group-hover:border-orange-300 transition-all duration-300">
@@ -172,9 +293,7 @@ export default function Home()
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-foreground mb-2">{t.home.cards.analyticsTitle}</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {t.home.cards.analyticsDesc}
-                      </p>
+                      <p className="text-muted-foreground leading-relaxed">{t.home.cards.analyticsDesc}</p>
                     </div>
                     <div className="pt-2 mt-auto">
                       <Button asChild variant="outline" size="sm" className="group-hover:bg-cyan-50 group-hover:border-cyan-300 transition-all duration-300">

@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Camera, Loader2, Sparkles, LayoutGrid, Download, Image as ImageIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Camera, Loader2, Sparkles, LayoutGrid, Download, Image as ImageIcon, Facebook, Instagram, Linkedin, Twitter, Music2 } from "lucide-react";
 
 type RoomType =
     | "living_room"
@@ -60,10 +61,15 @@ export default function RoomRedesignPage()
     const [showDownloadToast, setShowDownloadToast] = useState(false);
     const [showRedesignToast, setShowRedesignToast] = useState(false);
     const [speedProfile, setSpeedProfile] = useState<"fast" | "balanced" | "hq" | "ultra">("fast");
+    const [customPrompt, setCustomPrompt] = useState<string>("");
     const [previewOpen, setPreviewOpen] = useState(false);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
     const [isVideoGenerating, setIsVideoGenerating] = useState(false);
     const [videoError, setVideoError] = useState<string | null>(null);
+    const [publishOpen, setPublishOpen] = useState(false);
+    const [publishPlatforms, setPublishPlatforms] = useState<{ facebook: boolean; instagram: boolean; linkedin: boolean; x: boolean; tiktok: boolean }>({ facebook: true, instagram: false, linkedin: false, x: false, tiktok: false });
+    const [caption, setCaption] = useState("");
+    const [isPublishing, setIsPublishing] = useState(false);
     useEffect(() =>
     {
         if (cooldown <= 0) return;
@@ -180,6 +186,7 @@ export default function RoomRedesignPage()
                 variantSeed,
                 intensity,
                 quality: speedProfile,
+                customPrompt: customPrompt || undefined,
             }),
         });
         let data: unknown = {};
@@ -438,7 +445,12 @@ export default function RoomRedesignPage()
                                         <div className="text-xs text-slate-500">Ultra keeps original resolution for maximum clarity.</div>
                                     </div>
 
-                                    {/* Custom prompt removed per request */}
+                                    {/* Custom prompt */}
+                                    <div className="space-y-2">
+                                        <h3 className="font-semibold">Prompt (optionnel)</h3>
+                                        <Textarea rows={3} value={customPrompt} onChange={(e) => setCustomPrompt(e.target.value)} placeholder="Décris le style voulu, ambiance, matériaux, couleurs…" />
+                                        <div className="text-xs text-slate-500">Nous adapterons le redesign à ce brief. Insp. Nano Banana / Gemini 2.5 Flash (réf: https://flux-ai.io/model/nano-banana-ai/).</div>
+                                    </div>
 
                                     <div className="flex justify-end">
                                         <Button disabled={!canGenerate || isProcessing || cooldown > 0} onClick={triggerRedesign} className="rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white disabled:opacity-70">
@@ -482,7 +494,27 @@ export default function RoomRedesignPage()
                                         />
                                     </div>
 
-                                    <div className="flex items-center gap-3 justify-end">
+                                    <div className="flex items-center gap-3 justify-between">
+                                        {/* Professional social share bar */}
+                                        <div className="flex items-center gap-2 opacity-90">
+                                            <button type="button" className="p-2 rounded-lg border bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 transition" title="Partager sur Facebook" onClick={() => quickShare("facebook")}>
+                                                <Facebook className="h-4 w-4 text-[#1877F2]" />
+                                            </button>
+                                            <button type="button" className="p-2 rounded-lg border bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 transition" title="Partager sur Instagram" onClick={() => quickShare("instagram")}>
+                                                <Instagram className="h-4 w-4 text-[#E1306C]" />
+                                            </button>
+                                            <button type="button" className="p-2 rounded-lg border bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 transition" title="Partager sur LinkedIn" onClick={() => quickShare("linkedin")}>
+                                                <Linkedin className="h-4 w-4 text-[#0A66C2]" />
+                                            </button>
+                                            <button type="button" className="p-2 rounded-lg border bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 transition" title="Partager sur X" onClick={() => quickShare("x")}>
+                                                <Twitter className="h-4 w-4 text-black" />
+                                            </button>
+                                            <button type="button" className="p-2 rounded-lg border bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 transition" title="Partager sur TikTok" onClick={() => quickShare("tiktok")}>
+                                                <Music2 className="h-4 w-4 text-black" />
+                                            </button>
+                                        </div>
+
+                                        {/* Actions */}
                                         <Button
                                             variant="outline"
                                             className="rounded-xl px-4"
@@ -526,6 +558,25 @@ export default function RoomRedesignPage()
                                         >
                                             {isVideoGenerating ? "Generating…" : "Generate Video"}
                                         </Button>
+                                        {videoUrl && (
+                                            <Button
+                                                variant="default"
+                                                className="rounded-xl px-4"
+                                                onClick={async () =>
+                                                {
+                                                    // Get AI caption suggestion
+                                                    try {
+                                                        const context = `Room type: ${roomType}; Themes: ${selectedThemes.join(", ")}`;
+                                                        const res = await fetch("/api/social/caption", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ locale: "fr", context }) });
+                                                        const j = await res.json();
+                                                        setCaption(j?.caption || "");
+                                                    } catch { }
+                                                    setPublishOpen(true);
+                                                }}
+                                            >
+                                                Partager
+                                            </Button>
+                                        )}
                                         <Button
                                             className="rounded-xl"
                                             disabled={!canGenerate || isProcessing || cooldown > 0}
@@ -605,6 +656,74 @@ export default function RoomRedesignPage()
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Publish Dialog */}
+            <Dialog open={publishOpen} onOpenChange={setPublishOpen}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>Partager sur les réseaux sociaux</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="text-sm text-slate-600 dark:text-slate-300">Sélectionne les réseaux</div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <PlatformCheckbox id="facebook" label="Facebook" checked={publishPlatforms.facebook} onChange={(v) => setPublishPlatforms((p) => ({ ...p, facebook: v }))} />
+                            <PlatformCheckbox id="instagram" label="Instagram" checked={publishPlatforms.instagram} onChange={(v) => setPublishPlatforms((p) => ({ ...p, instagram: v }))} />
+                            <PlatformCheckbox id="linkedin" label="LinkedIn" checked={publishPlatforms.linkedin} onChange={(v) => setPublishPlatforms((p) => ({ ...p, linkedin: v }))} />
+                            <PlatformCheckbox id="x" label="Twitter/X" checked={publishPlatforms.x} onChange={(v) => setPublishPlatforms((p) => ({ ...p, x: v }))} />
+                            <PlatformCheckbox id="tiktok" label="TikTok" checked={publishPlatforms.tiktok} onChange={(v) => setPublishPlatforms((p) => ({ ...p, tiktok: v }))} />
+                        </div>
+
+                        <div className="space-y-1">
+                            <div className="text-sm font-medium">Description</div>
+                            <Textarea rows={4} value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Texte professionnel (personnalisable)" />
+                            <div className="text-xs text-slate-500">Tu peux modifier le texte avant publication.</div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            disabled={isPublishing || !videoUrl}
+                            onClick={async () =>
+                            {
+                                if (!videoUrl) return;
+                                setIsPublishing(true);
+                                try {
+                                    // Upload video blob URL to Vercel Blob to get a public URL
+                                    const blobRes = await fetch(videoUrl);
+                                    const blob = await blobRes.blob();
+                                    const reader = new FileReader();
+                                    const dataUrl: string = await new Promise((resolve) => { reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(blob); });
+                                    const up = await fetch('/api/upload-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dataUrl, fileName: 'redesign.webm' }) });
+                                    const upJson = await up.json();
+                                    if (!up.ok || !upJson?.url) throw new Error(upJson?.error || 'Upload failed');
+
+                                    const platforms = (Object.keys(publishPlatforms) as Array<keyof typeof publishPlatforms>).filter((k) => publishPlatforms[k]);
+                                    if (platforms.length === 0) throw new Error('Select at least one platform');
+                                    // If caption missing, fetch suggestion now
+                                    let finalCaption = caption;
+                                    if (!finalCaption) {
+                                        try {
+                                            const context = `Room type: ${roomType}; Themes: ${selectedThemes.join(", ")}`;
+                                            const r = await fetch('/api/social/caption', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ locale: 'fr', context }) });
+                                            const j2 = await r.json();
+                                            finalCaption = j2?.caption || 'Nouveau redesign de pièce ✨';
+                                        } catch { finalCaption = 'Nouveau redesign de pièce ✨'; }
+                                    }
+                                    const res = await fetch('/api/social/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: finalCaption, platforms, publishNow: true, videoUrl: upJson.url, title: finalCaption.slice(0, 60) || 'Video' }) });
+                                    const j = await res.json();
+                                    if (!res.ok) throw new Error(j?.error || 'Publish failed');
+                                    setPublishOpen(false);
+                                } catch (e) {
+                                    alert(e instanceof Error ? e.message : 'Publish failed');
+                                } finally {
+                                    setIsPublishing(false);
+                                }
+                            }}
+                        >
+                            {isPublishing ? 'Publication…' : 'Publier maintenant'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </main>
     );
 }
@@ -679,6 +798,79 @@ function Slideshow({ images, fallback, secondsPerSlide = 2.5 }: { images: string
         // eslint-disable-next-line @next/next/no-img-element
         <img src={slides[idx]} alt="Slideshow" className="w-full h-full object-cover" />
     );
+}
+
+// Simple checkbox component (forwarding to shadcn checkbox if present)
+function PlatformCheckbox({ id, label, checked, onChange }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void })
+{
+    return (
+        <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="h-4 w-4" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+            <span className="text-sm">{label}</span>
+        </label>
+    );
+}
+
+// Quick share: opens the chosen network in a new tab with the image/video and caption ready.
+// We upload the current video if present; otherwise the active image. Then open the network create page.
+async function openNetworkShare(network: "facebook" | "instagram" | "linkedin" | "x" | "tiktok", mediaUrl: string, caption: string)
+{
+    const text = encodeURIComponent(caption);
+    const url = encodeURIComponent(mediaUrl);
+    let shareUrl = "";
+    switch (network) {
+        case "facebook":
+            // Facebook web share supports URL; caption non garanti. Pour un start rapide côté Profil/Page.
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`;
+            break;
+        case "linkedin":
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`; // LinkedIn ignores text param for simple share
+            break;
+        case "x":
+            shareUrl = `https://x.com/intent/tweet?text=${text}&url=${url}`;
+            break;
+        case "instagram":
+            // Instagram web sharing is limited; open profile as fallback
+            shareUrl = `https://www.instagram.com/`;
+            break;
+        case "tiktok":
+            shareUrl = `https://www.tiktok.com/upload?lang=en`;
+            break;
+    }
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+}
+
+// Lightweight bridge used by the icon bar
+async function quickShare(network: "facebook" | "instagram" | "linkedin" | "x" | "tiktok")
+{
+    const videoEl = document.querySelector<HTMLVideoElement>("video");
+    const previewImg = document.querySelector<HTMLImageElement>("img[alt='Enhanced property'], img[alt='Slideshow']");
+    const caption = (document.querySelector<HTMLTextAreaElement>("textarea[placeholder='Texte professionnel (personnalisable)']")?.value || "Nouveau redesign ✨").slice(0, 240);
+    let mediaUrl = "";
+    try {
+        if (videoEl && videoEl.src) {
+            // Upload current video for a public URL
+            const blobRes = await fetch(videoEl.src);
+            const blob = await blobRes.blob();
+            const reader = new FileReader();
+            const dataUrl: string = await new Promise((resolve) => { reader.onload = () => resolve(String(reader.result)); reader.readAsDataURL(blob); });
+            const up = await fetch('/api/upload-video', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dataUrl, fileName: 'redesign.webm' }) });
+            const upJson = await up.json();
+            if (up.ok && upJson?.url) mediaUrl = upJson.url;
+        } else if (previewImg && previewImg.src) {
+            // Upload image data URL to get a public URL for reliable sharing
+            let imgUrl = previewImg.src;
+            if (imgUrl.startsWith("data:")) {
+                const up = await fetch('/api/upload-image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dataUrl: imgUrl, fileName: 'redesign.jpg' }) });
+                const j = await up.json();
+                if (up.ok && j?.url) imgUrl = j.url;
+            }
+            mediaUrl = imgUrl;
+        }
+    } catch { /* ignore */ }
+    if (!mediaUrl && previewImg?.src) mediaUrl = previewImg.src;
+    if (!mediaUrl) return;
+    await openNetworkShare(network, mediaUrl, caption);
 }
 
 function loadImage(src: string): Promise<HTMLImageElement>

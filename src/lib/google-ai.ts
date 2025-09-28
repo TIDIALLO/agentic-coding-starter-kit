@@ -31,8 +31,8 @@ export interface ImageEnhancementRequest {
   // Redesign mode (staging)
   roomType?: RoomType;
   designTheme?: DesignTheme;
-  // Additional user-provided creative brief for redesign mode (removed by request)
-  // customPrompt?: string;
+  // Additional user-provided creative brief for redesign mode
+  customPrompt?: string;
   // Variation & strength controls
   variantSeed?: number;
   intensity?: "subtle" | "balanced" | "bold";
@@ -134,7 +134,8 @@ Variation seed: ${String(
           request.variantSeed ?? "auto"
         )} (produce a distinct variation).
 Avoid text overlays, watermarks or borders.
-Output a high-resolution photo. Match or exceed the input resolution without adding borders.`
+Output a high-resolution photo. Match or exceed the input resolution without adding borders.
+${request.customPrompt ? `\nUser creative brief: ${request.customPrompt}` : ""}`
       : enhancementPrompts[
           (request.enhancementType ||
             "professional") as keyof typeof enhancementPrompts

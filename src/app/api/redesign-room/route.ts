@@ -12,6 +12,7 @@ type RedesignRequestBody = {
   variantSeed?: number;
   intensity?: "subtle" | "balanced" | "bold";
   quality?: "fast" | "balanced" | "hq" | "ultra";
+  customPrompt?: string;
 };
 
 export async function POST(request: NextRequest) {
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
           variantSeed,
           intensity,
           quality,
+          customPrompt,
         } = body;
 
         if (!imageData || !mimeType) {
@@ -87,6 +89,7 @@ export async function POST(request: NextRequest) {
               variantSeed: seed,
               intensity: intensity ?? "balanced",
               quality,
+              customPrompt,
             });
             if (r.success) {
               results.push({
