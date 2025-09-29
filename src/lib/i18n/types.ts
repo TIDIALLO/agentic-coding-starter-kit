@@ -223,6 +223,16 @@ export type Dictionary = {
     videoPreview: string;
     generateCaptionCta: string;
   };
+  roomRedesign: {
+    share: string;
+    publishDialogTitle: string;
+    selectPlatforms: string;
+    description: string;
+    publishNow: string;
+    publishing: string;
+    fullscreen: string;
+    preview: string;
+  };
   payments: {
     title: string;
     subtitle: string;
