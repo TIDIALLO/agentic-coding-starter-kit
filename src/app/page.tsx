@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
@@ -26,8 +25,7 @@ export default function Home()
     hidden: { opacity: 0, y: 18 },
     show: { opacity: 1, y: 0, transition: { ease: "easeOut", duration: 0.5 } },
   } as const;
-  const videoSrc = process.env.NEXT_PUBLIC_HERO_VIDEO_URL || "/hero-demo.webm";
-  const [videoOk, setVideoOk] = useState(true);
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-950">
       <div className="container mx-auto px-4 py-12">
@@ -59,57 +57,7 @@ export default function Home()
             </BackgroundGradient>
           </motion.div>
 
-          {/* Demo area: living room image (left) + generated video (right) */}
-          <motion.div variants={item} className="mt-4">
-            <div className="mx-auto max-w-6xl">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Left: Living room image with armchairs */}
-                <div className="rounded-2xl overflow-hidden border bg-white/70 dark:bg-slate-900/60 backdrop-blur">
-                  <div className="relative aspect-video">
-                    <img
-                      src="https://images.unsplash.com/photo-1505691723518-36a5ac3b2b95?auto=format&fit=crop&w=1600&q=80"
-                      alt="Salon moderne avec fauteuils"
-                      className="absolute inset-0 w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/10 via-transparent to-transparent" />
-                  </div>
-                </div>
 
-                {/* Right: Generated video preview */}
-                <div className="rounded-2xl overflow-hidden border bg-white/70 dark:bg-slate-900/60 backdrop-blur relative">
-                  <div className="relative aspect-video">
-                    {videoOk ? (
-                      <video
-                        key={videoSrc}
-                        src={videoSrc}
-                        poster="/window.svg"
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        onError={() => setVideoOk(false)}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      >
-                        <source src={videoSrc} type="video/webm" />
-                      </video>
-                    ) : (
-                      <div className="absolute inset-0 w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-300">
-                        <div className="text-center space-y-3">
-                          <div className="text-sm">Démo vidéo indisponible</div>
-                          <div className="flex items-center justify-center gap-2">
-                            <Button asChild size="sm" variant="outline"><Link href="/room-redesign">Générer des images</Link></Button>
-                            <Button asChild size="sm" variant="outline"><Link href="/social-studio">Publier</Link></Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/10 via-transparent to-transparent" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
           <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12" variants={container}>
             {/* 1) Amélioration d'images par IA */}
             <motion.div variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 180, damping: 16 }}>

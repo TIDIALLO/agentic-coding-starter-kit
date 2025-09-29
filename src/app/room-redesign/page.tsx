@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Loader2, Sparkles, LayoutGrid, Download, Image as ImageIcon, Facebook, Instagram, Linkedin, Twitter, Music2 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 type RoomType =
     | "living_room"
@@ -47,6 +48,7 @@ const themeOptions: { id: DesignTheme; label: string }[] = [
 
 export default function RoomRedesignPage()
 {
+    const { t } = useI18n();
     const [roomType, setRoomType] = useState<RoomType>("living_room");
     const [selectedThemes, setSelectedThemes] = useState<DesignTheme[]>(["modern"]);
     const [variantSeed, setVariantSeed] = useState<number>(Math.floor(Math.random() * 1e6));
@@ -312,12 +314,12 @@ export default function RoomRedesignPage()
                 <div className="text-center space-y-6 mb-10">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-600/10 to-purple-600/10 border border-blue-200/50 dark:border-blue-800/50">
                         <Sparkles className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">AI Room Redesign (no payment)</span>
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{t.imageEnhancement.headerBadge}</span>
                     </div>
                     <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 dark:from-blue-100 dark:via-purple-100 dark:to-indigo-100 bg-clip-text text-transparent">
-                        Redesign your room in seconds
+                        {t.imageEnhancement.title}
                     </h1>
-                    <p className="text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">Upload a photo, pick up to 4 themes, and generate multiple designs inspired by RoomGPT.</p>
+                    <p className="text-slate-600 dark:text-slate-400 max-w-3xl mx-auto">{t.imageEnhancement.subtitle}</p>
                 </div>
                 {/* Removed steps block per request */}
                 {cooldown > 0 && (
@@ -329,8 +331,8 @@ export default function RoomRedesignPage()
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <Card className="lg:col-span-1 border-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-xl rounded-3xl">
                         <CardHeader>
-                            <CardTitle>Upload Room Image</CardTitle>
-                            <CardDescription>Drop a room image or browse</CardDescription>
+                            <CardTitle>{t.imageEnhancement.uploadTitle}</CardTitle>
+                            <CardDescription>{t.imageEnhancement.uploadDesc}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div
@@ -476,8 +478,8 @@ export default function RoomRedesignPage()
                                             <ImageIcon className="h-12 w-12 text-slate-400" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Upload an image to get started</h3>
-                                            <p className="text-slate-600 dark:text-slate-400">Your redesigned variations will appear here</p>
+                                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t.imageEnhancement.messages.uploadPrompt}</h3>
+                                            <p className="text-slate-600 dark:text-slate-400">{t.imageEnhancement.compareSubtitle}</p>
                                         </div>
                                     </div>
                                 </div>

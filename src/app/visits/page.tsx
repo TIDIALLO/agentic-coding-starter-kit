@@ -20,7 +20,7 @@ type Visit = {
   notes?: string;
 };
 
-const mockVisits: Visit[] = [];
+// removed unused mockVisits
 
 export default function VisitsPage()
 {

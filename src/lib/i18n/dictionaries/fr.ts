@@ -170,6 +170,7 @@ export const fr: Dictionary = {
     roomRedesign: "Re-design de pièce",
     aiShort: "IA",
     socialShare: "Publier",
+    pricing: "Tarifs",
   },
   payments: {
     title: "Acheter des crédits",
@@ -334,5 +335,15 @@ export const fr: Dictionary = {
     createVideoCta: "Créer la vidéo",
     videoPreview: "Aperçu vidéo",
     generateCaptionCta: "Générer la légende",
+  },
+  roomRedesign: {
+    share: "Partager",
+    publishDialogTitle: "Partager sur les réseaux",
+    selectPlatforms: "Sélectionne les réseaux",
+    description: "Description",
+    publishNow: "Publier maintenant",
+    publishing: "Publication…",
+    fullscreen: "Plein écran",
+    preview: "Aperçu",
   },
 };

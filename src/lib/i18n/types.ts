@@ -115,6 +115,7 @@ export type Dictionary = {
     roomRedesign: string;
     aiShort: string;
     socialShare: string;
+    pricing: string;
   };
   properties: {
     loading: string;

@@ -66,6 +66,12 @@ export function SiteHeader()
             <Share2 className="h-3.5 w-3.5" />
             {t.header.socialShare}
           </Link>
+          <Link
+            href="/payments"
+            className="px-3 py-1.5 font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-all duration-300"
+          >
+            💳 {t.header.pricing}
+          </Link>
         </nav>
 
         {/* Mobile Menu Button */}

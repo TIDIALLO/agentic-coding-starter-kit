@@ -77,7 +77,7 @@ export default function NewVisitPage()
                 ];
                 if (typeof window !== 'undefined') window.localStorage.setItem('scheduled_visits', JSON.stringify(next));
             } catch { }
-        } catch (e) {
+        } catch {
             setMessage(t.schedule.error);
         } finally {
             setSubmitting(false);
